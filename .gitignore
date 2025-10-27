@@ -1,0 +1,27 @@
+# Archivos de configuración sensibles
+config/config.php
+
+# Archivos temporales de PHP
+*.tmp
+*.log
+
+# Archivos del sistema
+.DS_Store
+Thumbs.db
+
+# Directorios de dependencias (si usas Composer en el futuro)
+vendor/
+
+# Archivos de IDE
+.vscode/
+.idea/
+
+# Archivos de cache
+cache/
+temp/
+
+# Archivos de sesión
+sessions/
+
+# Archivos de subida de usuarios
+uploads/
