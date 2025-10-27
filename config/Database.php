@@ -35,7 +35,6 @@ class Database {
         }
     }
     
-    // Prevenir clonación y deserialización
     private function __clone() {}
     public function __wakeup() {}
 }
