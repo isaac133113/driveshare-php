@@ -1,7 +1,6 @@
 <?php
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/HorariModel.php';
-require_once __DIR__ . '/../models/UserModel.php';
 
 class HorariController extends BaseController {
     private $horariModel;

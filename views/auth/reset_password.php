@@ -54,7 +54,7 @@
                         
                         <div class="text-center">
                             <p class="text-muted mb-0">
-                                <a href="login.php" class="text-primary fw-semibold text-decoration-none">
+                                <a href="../horaris/login.php" class="text-primary fw-semibold text-decoration-none">
                                     <i class="bi bi-arrow-left me-1"></i>Tornar al Login
                                 </a>
                             </p>

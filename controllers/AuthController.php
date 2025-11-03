@@ -1,14 +1,11 @@
 <?php
 require_once __DIR__ . '/BaseController.php';
-require_once __DIR__ . '/../models/UserModel.php';
 
 class AuthController extends BaseController {
     
-    protected $userModel;
-    
     public function __construct() {
         parent::__construct();
-        $this->userModel = new UserModel();
+        // userModel ya está disponible desde BaseController
     }
     
     public function login() {
@@ -124,9 +121,28 @@ class AuthController extends BaseController {
                 if ($this->userModel->emailExists($email)) {
                     $token = $this->userModel->generateResetToken($email);
                     if ($token) {
-                        // En una aplicación real, enviarías un email aquí
-                        $message = 'S\'ha enviat un enllaç de recuperació al teu email.';
-                        $messageType = 'success';
+                        // Obtener datos del usuario
+                        $user = $this->userModel->getByEmail($email);
+                        if ($user) {
+                            $userName = $user['nom'] . ' ' . $user['cognoms'];
+                        } else {
+                            $userName = 'Usuario'; // Fallback si no se encuentra el usuario
+                        }
+                        
+                        // Enviar email
+                        require_once __DIR__ . '/../helpers/EmailService.php';
+                        $emailService = new EmailService();
+                        $emailResult = $emailService->sendPasswordReset($email, $userName, $token);
+                        
+                        if ($emailResult['success']) {
+                            $message = '📧 S\'ha enviat un enllaç de recuperació al teu email. Revisa la teva safata d\'entrada i spam.';
+                            $messageType = 'success';
+                        } else {
+                            $message = '⚠️ Token generat correctament, però hi ha hagut un problema enviant l\'email. Contacta amb l\'administrador.';
+                            $messageType = 'warning';
+                            // En desarrollo, mostrar el token
+                            $message .= "<br><small>Token per desenvolupament: <code>{$token}</code></small>";
+                        }
                     } else {
                         $message = 'Error al generar el token de recuperació.';
                         $messageType = 'danger';
