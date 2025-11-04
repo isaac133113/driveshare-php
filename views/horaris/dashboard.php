@@ -2,7 +2,6 @@
 session_start();
 
 // Cargar clases necesarias
-require_once '../../config/config.php';
 require_once '../../config/Database.php';
 require_once '../../models/UserModel.php';
 
@@ -420,9 +419,29 @@ if ($result->num_rows > 0) {
                             </div>
                             <div class="col-md-4">
                                 <div class="d-grid">
-                                    <button class="btn btn-outline-info btn-lg rounded-3" onclick="findNearestCar()">
-                                        <i class="bi bi-geo-alt me-2"></i>Troba Cotxe Proper
-                                        <small class="d-block text-muted">Localitza vehicles</small>
+                                    <a href="../../ver-coches.php" class="btn btn-outline-info btn-lg rounded-3">
+                                        <i class="bi bi-car-front me-2"></i>Ver Coches
+                                        <small class="d-block text-muted">Explorar y reservar</small>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Segunda fila de botones -->
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-6">
+                                <div class="d-grid">
+                                    <a href="../../buscar-coche.php" class="btn btn-outline-warning btn-lg rounded-3">
+                                        <i class="bi bi-geo-alt me-2"></i>Buscar Coche Cercano
+                                        <small class="d-block text-muted">Mapa interactivo con ubicaciones</small>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-grid">
+                                    <button class="btn btn-outline-secondary btn-lg rounded-3" onclick="viewReservations()">
+                                        <i class="bi bi-clipboard-check me-2"></i>Mis Reservas
+                                        <small class="d-block text-muted">Historial y reservas activas</small>
                                     </button>
                                 </div>
                             </div>
