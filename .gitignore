@@ -1,27 +1,75 @@
+# Dependencias de Composer
+/vendor/
+composer.phar
+
 # Archivos de configuración sensibles
 config/config.php
+config/database_local.php
+config/email_credentials.php
 
-# Archivos temporales de PHP
-*.tmp
+# Logs de errores y archivos temporales
 *.log
+*.tmp
+error_log
 
-# Archivos del sistema
+# Archivos temporales del sistema
 .DS_Store
 Thumbs.db
+desktop.ini
 
-# Directorios de dependencias (si usas Composer en el futuro)
-vendor/
-
-# Archivos de IDE
+# Archivos de IDEs
 .vscode/
 .idea/
+*.swp
+*.swo
+*~
 
-# Archivos de cache
+# Archivos de backup
+*.bak
+*.backup
+*.old
+
+# Directorios de cache y temporales
 cache/
 temp/
+tmp/
+
+# Variables de entorno
+.env
+.env.local
+.env.*.local
 
 # Archivos de sesión
 sessions/
 
 # Archivos de subida de usuarios
 uploads/
+uploads/user_uploads/
+uploads/temp/
+
+# Reportes de coverage y tests
+coverage/
+*.coverage
+
+# Archivos de node (si se usan)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Directorios de build
+build/
+dist/
+
+# Archivos específicos de PHP
+*.php~
+*.phptmp
+
+# Archivos de base de datos locales
+*.sqlite
+*.db
+
+# Archivos de certificados
+*.pem
+*.key
+*.crt
