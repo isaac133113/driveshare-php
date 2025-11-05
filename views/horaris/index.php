@@ -4,41 +4,50 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Horaris - DriveShare</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="../../dashboard.php">
-                <i class="fas fa-car"></i> DriveShare
+                <i class="bi bi-car-front-fill"></i> DriveShare
             </a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="../../dashboard.php">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                    <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
                 <a class="nav-link" href="../controllers/AuthController.php?action=profile">
-                    <i class="fas fa-user"></i> Perfil
+                    <i class="bi bi-person"></i> Perfil
                 </a>
                 <a class="nav-link" href="../controllers/AuthController.php?action=logout">
-                    <i class="fas fa-sign-out-alt"></i> Sortir
+                    <i class="bi bi-box-arrow-right"></i> Sortir
                 </a>
             </div>
         </div>
     </nav>
 
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-12">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2><i class="fas fa-calendar-alt"></i> Gestió d'Horaris</h2>
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addHorariModal">
-                        <i class="fas fa-plus"></i> Nou Horari
-                    </button>
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- Header Card -->
+                <div class="card border-0 shadow-lg rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2 class="fw-bold text-dark mb-1">
+                                    <i class="bi bi-calendar-event text-primary me-2"></i>Gestió d'Horaris
+                                </h2>
+                                <p class="text-muted mb-0">Organitza els teus viatges i rutes</p>
+                            </div>
+                            <button class="btn btn-primary rounded-3" data-bs-toggle="modal" data-bs-target="#addHorariModal">
+                                <i class="bi bi-plus-lg me-2"></i>Nou Horari
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
 
         <!-- Mostrar mensajes -->
         <?php if (isset($message) && !empty($message)): ?>
