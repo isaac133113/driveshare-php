@@ -23,7 +23,7 @@ if (!isset($vehicle)) {
 </head>
 <body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
             <a class="navbar-brand" href="../../dashboard.php">
                 <i class="bi bi-car-front-fill"></i> DriveShare

@@ -4,250 +4,192 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Buscar Coche Cercano - DriveShare</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <!-- Bootstrap CSS CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        #map {
-            height: 500px;
-            width: 100%;
-            border-radius: 10px;
-            border: 2px solid #dee2e6;
-        }
-        .vehicle-marker {
-            background: #007bff;
-            color: white;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            border: 3px solid white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-        }
-        .vehicle-marker.unavailable {
-            background: #dc3545;
-        }
-        .vehicle-marker.electric {
-            background: #28a745;
-        }
-        .vehicle-marker.moto {
-            background: #fd7e14;
-        }
-        .vehicle-card {
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            cursor: pointer;
-        }
-        .vehicle-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-        }
-        .vehicle-card.selected {
-            border: 2px solid #007bff;
-            background: #f8f9fa;
-        }
-        .distance-badge {
-            background: linear-gradient(45deg, #007bff, #0056b3);
-        }
-        .battery-level {
-            background: linear-gradient(90deg, #28a745, #20c997);
-        }
-        .controls-panel {
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 5px;
-        }
-        .legend-color {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            margin-right: 10px;
-            border: 2px solid white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-        }
-        .info-panel {
-            max-height: 500px;
-            overflow-y: auto;
-        }
-    </style>
 </head>
-<body class="bg-light">
+<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
     <!-- Navbar -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
             <a class="navbar-brand" href="../../dashboard.php">
-                <i class="fas fa-car"></i> DriveShare
+                <i class="bi bi-car-front-fill"></i> DriveShare
             </a>
             <div class="navbar-nav ms-auto">
                 <a class="nav-link" href="../../dashboard.php">
-                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                    <i class="bi bi-speedometer2"></i> Dashboard
                 </a>
                 <a class="nav-link" href="../../controllers/VehicleController.php">
-                    <i class="fas fa-list"></i> Ver Coches
+                    <i class="bi bi-car-front"></i> Ver Coches
                 </a>
                 <a class="nav-link" href="../../controllers/AuthController.php?action=profile">
-                    <i class="fas fa-user"></i> Perfil
+                    <i class="bi bi-person"></i> Perfil
                 </a>
                 <a class="nav-link" href="../../controllers/AuthController.php?action=logout">
-                    <i class="fas fa-sign-out-alt"></i> Sortir
+                    <i class="bi bi-box-arrow-right"></i> Sortir
                 </a>
             </div>
         </div>
     </nav>
 
-    <div class="container-fluid mt-4">
-        <!-- Header -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <h1 class="display-6"><i class="fas fa-map-marked-alt"></i> Buscar Coche Cercano</h1>
-                <p class="lead text-muted">Encuentra el vehículo más cercano a tu ubicación</p>
-            </div>
-        </div>
-
-        <!-- Mensajes -->
-        <?php if (isset($message) && !empty($message)): ?>
-            <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show" role="alert">
-                <?php echo $message; ?>
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        <?php endif; ?>
-
-        <div class="row">
-            <!-- Panel de controles -->
-            <div class="col-lg-3 mb-4">
-                <div class="controls-panel p-4">
-                    <h5><i class="fas fa-sliders-h"></i> Filtros de Búsqueda</h5>
-                    
-                    <!-- Ubicación actual -->
-                    <div class="mb-3">
-                        <label class="form-label">Mi Ubicación</label>
-                        <div class="d-grid">
-                            <button id="getLocationBtn" class="btn btn-outline-primary">
-                                <i class="fas fa-crosshairs"></i> Detectar Ubicación
-                            </button>
-                        </div>
-                        <div id="locationStatus" class="small text-muted mt-1"></div>
-                    </div>
-
-                    <!-- Radio de búsqueda -->
-                    <div class="mb-3">
-                        <label for="radiusSlider" class="form-label">Radio de Búsqueda: <span id="radiusValue"><?php echo $radius; ?></span> km</label>
-                        <input type="range" class="form-range" id="radiusSlider" min="1" max="20" value="<?php echo $radius; ?>">
-                    </div>
-
-                    <!-- Tipo de vehículo -->
-                    <div class="mb-3">
-                        <label for="vehicleTypeFilter" class="form-label">Tipo de Vehículo</label>
-                        <select class="form-select" id="vehicleTypeFilter">
-                            <option value="">Todos los tipos</option>
-                            <option value="city">Urbano</option>
-                            <option value="compacto">Compacto</option>
-                            <option value="sedan">Sedan</option>
-                            <option value="electrico">Eléctrico</option>
-                            <option value="furgoneta">Furgoneta</option>
-                            <option value="moto">Motocicleta</option>
-                        </select>
-                    </div>
-
-                    <!-- Servicios adicionales -->
-                    <div class="mb-3">
-                        <label class="form-label">Mostrar en Mapa</label>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="showGasStations" checked>
-                            <label class="form-check-label" for="showGasStations">
-                                Gasolineras
-                            </label>
-                        </div>
-                        <div class="form-check">
-                            <input class="form-check-input" type="checkbox" id="showParkings" checked>
-                            <label class="form-check-label" for="showParkings">
-                                Parkings
-                            </label>
-                        </div>
-                    </div>
-
-                    <hr>
-
-                    <!-- Leyenda -->
-                    <h6><i class="fas fa-info-circle"></i> Leyenda</h6>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: #007bff;"></div>
-                        <small>Vehículo disponible</small>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: #28a745;"></div>
-                        <small>Vehículo eléctrico</small>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: #fd7e14;"></div>
-                        <small>Motocicleta</small>
-                    </div>
-                    <div class="legend-item">
-                        <div class="legend-color" style="background: #dc3545;"></div>
-                        <small>No disponible</small>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Mapa -->
-            <div class="col-lg-6 mb-4">
-                <div class="card">
-                    <div class="card-body p-0">
-                        <div id="map"></div>
-                    </div>
-                </div>
-                
-                <!-- Información rápida -->
-                <div class="mt-3">
-                    <div class="row text-center">
-                        <div class="col-4">
-                            <div class="card bg-primary text-white">
-                                <div class="card-body py-2">
-                                    <h6 class="mb-1" id="totalVehicles"><?php echo count($nearbyVehicles); ?></h6>
-                                    <small>Vehículos</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="card bg-success text-white">
-                                <div class="card-body py-2">
-                                    <h6 class="mb-1" id="availableVehicles"><?php echo count(array_filter($nearbyVehicles, function($v) { return $v['disponible']; })); ?></h6>
-                                    <small>Disponibles</small>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-4">
-                            <div class="card bg-info text-white">
-                                <div class="card-body py-2">
-                                    <h6 class="mb-1" id="nearestDistance"><?php echo !empty($nearbyVehicles) ? $nearbyVehicles[0]['distancia'] : '0'; ?> km</h6>
-                                    <small>Más cercano</small>
-                                </div>
-                            </div>
+    <div class="container-fluid py-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-11">
+                <!-- Header Card -->
+                <div class="card border-0 shadow-lg rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <div class="text-center mb-4">
+                            <i class="bi bi-geo-alt-fill text-primary display-4"></i>
+                            <h2 class="fw-bold text-dark mt-3">Buscar Coche Cercano</h2>
+                            <p class="text-muted">Encuentra el vehículo más cercano a tu ubicación</p>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Lista de vehículos -->
-            <div class="col-lg-3">
-                <div class="info-panel">
-                    <h5><i class="fas fa-list"></i> Vehículos Cercanos</h5>
-                    <div id="vehiclesList">
-                        <?php foreach ($nearbyVehicles as $vehicle): ?>
-                            <div class="vehicle-card card mb-2" data-vehicle-id="<?php echo $vehicle['id']; ?>" onclick="selectVehicle(<?php echo $vehicle['id']; ?>)">
-                                <div class="card-body p-3">
-                                    <div class="d-flex justify-content-between align-items-start mb-2">
-                                        <h6 class="mb-0"><?php echo htmlspecialchars($vehicle['nombre']); ?></h6>
-                                        <span class="badge distance-badge text-white"><?php echo $vehicle['distancia']; ?> km</span>
+                <!-- Mensajes -->
+                <?php if (isset($message) && !empty($message)): ?>
+                    <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show rounded-3" role="alert">
+                        <i class="bi bi-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
+                        <?php echo $message; ?>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                <?php endif; ?>
+
+                <div class="row">
+                    <!-- Panel de controles -->
+                    <div class="col-lg-3 mb-4">
+                        <div class="card border-0 shadow-lg rounded-4">
+                            <div class="card-header bg-primary text-white rounded-top-4">
+                                <h5 class="mb-0"><i class="bi bi-sliders me-2"></i>Filtros de Búsqueda</h5>
+                            </div>
+                            <div class="card-body p-4">
+                                
+                                <!-- Ubicación actual -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Mi Ubicación</label>
+                                    <div class="d-grid">
+                                        <button id="getLocationBtn" class="btn btn-outline-primary rounded-3">
+                                            <i class="bi bi-crosshair me-2"></i>Detectar Ubicación
+                                        </button>
                                     </div>
+                                    <div id="locationStatus" class="small text-muted mt-1"></div>
+                                </div>
+
+                                <!-- Radio de búsqueda -->
+                                <div class="mb-3">
+                                    <label for="radiusSlider" class="form-label fw-bold">Radio de Búsqueda: <span id="radiusValue"><?php echo $radius; ?></span> km</label>
+                                    <input type="range" class="form-range" id="radiusSlider" min="1" max="20" value="<?php echo $radius; ?>">
+                                </div>
+
+                                <!-- Tipo de vehículo -->
+                                <div class="mb-3">
+                                    <label for="vehicleTypeFilter" class="form-label fw-bold">Tipo de Vehículo</label>
+                                    <select class="form-select rounded-3" id="vehicleTypeFilter">
+                                        <option value="">Todos los tipos</option>
+                                        <option value="city">Urbano</option>
+                                        <option value="compacto">Compacto</option>
+                                        <option value="sedan">Sedan</option>
+                                        <option value="electrico">Eléctrico</option>
+                                        <option value="furgoneta">Furgoneta</option>
+                                        <option value="moto">Motocicleta</option>
+                                    </select>
+                                </div>
+
+                                <!-- Servicios adicionales -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold">Mostrar en Mapa</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="showGasStations" checked>
+                                        <label class="form-check-label" for="showGasStations">
+                                            <i class="bi bi-fuel-pump me-1"></i>Gasolineras
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="showParkings" checked>
+                                        <label class="form-check-label" for="showParkings">
+                                            <i class="bi bi-p-square me-1"></i>Parkings
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <hr>
+
+                                <!-- Leyenda -->
+                                <h6 class="fw-bold"><i class="bi bi-info-circle me-2"></i>Leyenda</h6>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="rounded-circle me-2" style="width: 20px; height: 20px; background: #007bff; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
+                                    <small>Vehículo disponible</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="rounded-circle me-2" style="width: 20px; height: 20px; background: #28a745; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
+                                    <small>Vehículo eléctrico</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="rounded-circle me-2" style="width: 20px; height: 20px; background: #fd7e14; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
+                                    <small>Motocicleta</small>
+                                </div>
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="rounded-circle me-2" style="width: 20px; height: 20px; background: #dc3545; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
+                                    <small>No disponible</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mapa -->
+                    <div class="col-lg-6 mb-4">
+                        <div class="card border-0 shadow-lg rounded-4">
+                            <div class="card-body p-0">
+                                <div id="map" style="height: 500px; width: 100%; border-radius: 10px;"></div>
+                            </div>
+                        </div>
+                        
+                        <!-- Información rápida -->
+                        <div class="mt-3">
+                            <div class="row text-center g-2">
+                                <div class="col-4">
+                                    <div class="card bg-primary text-white border-0 rounded-3">
+                                        <div class="card-body py-3">
+                                            <h6 class="mb-1" id="totalVehicles"><?php echo count($nearbyVehicles); ?></h6>
+                                            <small>Vehículos</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="card bg-success text-white border-0 rounded-3">
+                                        <div class="card-body py-3">
+                                            <h6 class="mb-1" id="availableVehicles"><?php echo count(array_filter($nearbyVehicles, function($v) { return $v['disponible']; })); ?></h6>
+                                            <small>Disponibles</small>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-4">
+                                    <div class="card bg-info text-white border-0 rounded-3">
+                                        <div class="card-body py-3">
+                                            <h6 class="mb-1" id="nearestDistance"><?php echo !empty($nearbyVehicles) ? $nearbyVehicles[0]['distancia'] : '0'; ?> km</h6>
+                                            <small>Más cercano</small>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lista de vehículos -->
+                    <div class="col-lg-3">
+                        <div class="card border-0 shadow-lg rounded-4">
+                            <div class="card-header bg-primary text-white rounded-top-4">
+                                <h5 class="mb-0"><i class="bi bi-car-front me-2"></i>Vehículos Cercanos</h5>
+                            </div>
+                            <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
+                                <div id="vehiclesList">
+                                    <?php foreach ($nearbyVehicles as $vehicle): ?>
+                                        <div class="vehicle-card border-bottom p-3" data-vehicle-id="<?php echo $vehicle['id']; ?>" onclick="selectVehicle(<?php echo $vehicle['id']; ?>)" style="cursor: pointer; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor='white'">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <h6 class="mb-0 fw-bold"><?php echo htmlspecialchars($vehicle['nombre']); ?></h6>
+                                                <span class="badge bg-primary rounded-pill"><?php echo $vehicle['distancia']; ?> km</span>
+                                            </div>
                                     
                                     <div class="row g-2 mb-2">
                                         <div class="col-6">
@@ -343,7 +285,7 @@
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         let map;
