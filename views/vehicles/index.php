@@ -175,8 +175,13 @@
                                         <!-- Precios -->
                                         <div class="d-flex justify-content-between align-items-center mb-3">
                                             <div>
-                                                <small class="text-muted">€<?php echo number_format($vehicle['precio_hora'], 0); ?>/hora</small><br>
-                                                <strong class="text-primary fs-5">€<?php echo number_format($vehicle['precio_dia'], 0); ?>/día</strong>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-coin me-1"></i><?php echo number_format($vehicle['precio_hora'] * 10, 0); ?> DC/hora
+                                                </small><br>
+                                                <strong class="text-primary fs-5">
+                                                    <i class="bi bi-coin me-1"></i><?php echo number_format($vehicle['precio_dia'] * 10, 0); ?> DC/día
+                                                </strong>
+                                                <br><small class="text-muted">(€<?php echo number_format($vehicle['precio_hora'], 0); ?>/h - €<?php echo number_format($vehicle['precio_dia'], 0); ?>/día)</small>
                                             </div>
                                             <span class="badge bg-<?php echo $vehicle['disponible'] ? 'success' : 'danger'; ?> rounded-pill px-3 py-2">
                                                 <?php echo $vehicle['disponible'] ? 'Disponible' : 'No disponible'; ?>
@@ -266,10 +271,14 @@
                             <div class="card-body">
                                 <h6 class="card-title fw-bold">Resumen de Reserva</h6>
                                 <div id="pricing-summary">
-                                    <p class="mb-1">Precio por <span id="precio-tipo">día</span>: €<span id="precio-unitario">0</span></p>
+                                    <p class="mb-1">Precio por <span id="precio-tipo">día</span>: <i class="bi bi-coin"></i> <span id="precio-unitario-dc">0</span> DC</p>
+                                    <p class="mb-2 text-muted small">(<span id="precio-unitario-euros">€0</span>)</p>
                                     <p class="mb-1">Cantidad: <span id="cantidad-display">1</span> <span id="cantidad-tipo">día(s)</span></p>
                                     <hr>
-                                    <h6 class="mb-0 fw-bold">Total: €<span id="precio-total">0</span></h6>
+                                    <h6 class="mb-0 fw-bold text-primary">
+                                        Total: <i class="bi bi-coin"></i> <span id="precio-total-dc">0</span> DC
+                                    </h6>
+                                    <small class="text-muted">(<span id="precio-total-euros">€0</span>)</small>
                                 </div>
                             </div>
                         </div>
@@ -312,14 +321,20 @@
             const tipoRenta = document.getElementById('tipo_renta').value;
             const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
             
-            const precioUnitario = tipoRenta === 'dias' ? currentVehicle.precio_dia : currentVehicle.precio_hora;
-            const total = precioUnitario * cantidad;
+            const precioUnitarioEuros = tipoRenta === 'dias' ? currentVehicle.precio_dia : currentVehicle.precio_hora;
+            const totalEuros = precioUnitarioEuros * cantidad;
+            
+            // Convertir a DriveCoins (1 Euro = 10 DriveCoins)
+            const precioUnitarioDC = precioUnitarioEuros * 10;
+            const totalDC = totalEuros * 10;
             
             document.getElementById('precio-tipo').textContent = tipoRenta === 'dias' ? 'día' : 'hora';
-            document.getElementById('precio-unitario').textContent = precioUnitario.toFixed(2);
+            document.getElementById('precio-unitario-dc').textContent = precioUnitarioDC.toFixed(0);
+            document.getElementById('precio-unitario-euros').textContent = '€' + precioUnitarioEuros.toFixed(2);
             document.getElementById('cantidad-display').textContent = cantidad;
             document.getElementById('cantidad-tipo').textContent = tipoRenta === 'dias' ? 'día(s)' : 'hora(s)';
-            document.getElementById('precio-total').textContent = total.toFixed(2);
+            document.getElementById('precio-total-dc').textContent = totalDC.toFixed(0);
+            document.getElementById('precio-total-euros').textContent = '€' + totalEuros.toFixed(2);
         }
 
         // Auto-calcular cantidad basada en fechas

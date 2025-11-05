@@ -95,7 +95,7 @@ class VehicleController extends BaseController {
                 'gps' => true,
                 'bluetooth' => true,
                 'disponible' => true,
-                'imagen' => 'https://via.placeholder.com/300x200/ffc107/000000?text=Ford+Transit',
+                'imagen' => 'data:image/jpeg;base64,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',
                 'descripcion' => 'Furgoneta espaciosa ideal para grupos grandes y mudanzas.'
             ],
             [
@@ -298,12 +298,42 @@ class VehicleController extends BaseController {
             ];
         }
         
-        // Calcular precio
-        $precio = $tipoRenta === 'horas' ? $vehicle['precio_hora'] : $vehicle['precio_dia'];
-        $total = $precio * $cantidad;
+        // Calcular precio en euros y convertir a DriveCoins
+        $precioEuros = $tipoRenta === 'horas' ? $vehicle['precio_hora'] : $vehicle['precio_dia'];
+        $totalEuros = $precioEuros * $cantidad;
+        
+        // Convertir a DriveCoins (1 Euro = 10 DriveCoins)
+        require_once __DIR__ . '/../models/DriveCoinModel.php';
+        $driveCoinModel = new DriveCoinModel();
+        $totalDriveCoins = DriveCoinModel::eurosToDriveCoins($totalEuros);
+        
+        // Verificar saldo de DriveCoins del usuario
+        $currentBalance = $driveCoinModel->getBalance($_SESSION['user_id']);
+        
+        if ($currentBalance < $totalDriveCoins) {
+            return [
+                'success' => false,
+                'message' => "Saldo insuficient de DriveCoins. Necessites: " . number_format($totalDriveCoins, 0, ',', '.') . " DC<br>
+                            Saldo actual: " . number_format($currentBalance, 0, ',', '.') . " DC<br>
+                            <a href='../comprar-drivecoins.php' class='btn btn-primary btn-sm mt-2'>Comprar DriveCoins</a>",
+                'type' => 'warning'
+            ];
+        }
         
         // Generar código de reserva
         $codigoReserva = 'DRS' . date('Y') . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
+        
+        // Procesar pago con DriveCoins
+        $descripcionTransaccion = "Reserva vehicle {$vehicle['nombre']} - {$codigoReserva}";
+        $resultPago = $driveCoinModel->spendDriveCoins($_SESSION['user_id'], $totalDriveCoins, $descripcionTransaccion, $codigoReserva);
+        
+        if (!$resultPago['success']) {
+            return [
+                'success' => false,
+                'message' => 'Error al processar el pagament: ' . $resultPago['message'],
+                'type' => 'danger'
+            ];
+        }
         
         // En una aplicación real, aquí guardarías la reserva en la base de datos
         // Por ahora, simularemos una reserva exitosa
@@ -320,9 +350,11 @@ class VehicleController extends BaseController {
             'message' => "Reserva realitzada correctament! Codi de reserva: <strong>$codigoReserva</strong><br>
                          Vehicle: {$vehicle['nombre']}<br>
                          Període: $fechaInicio - $fechaFin<br>
-                         Total: €" . number_format($total, 2),
+                         Cost: <i class='bi bi-coin'></i> " . number_format($totalDriveCoins, 0, ',', '.') . " DC<br>
+                         Nou saldo: <i class='bi bi-coin'></i> " . number_format($resultPago['new_balance'], 0, ',', '.') . " DC",
             'type' => 'success',
-            'codigo_reserva' => $codigoReserva
+            'codigo_reserva' => $codigoReserva,
+            'new_balance' => $resultPago['new_balance']
         ];
     }
     

@@ -361,6 +361,27 @@ if ($result->num_rows > 0) {
     
     <!-- DriveShare Interactive Functions -->
     <script>
+        // DriveCoins Interactive Functions
+        function buyDriveCoins() {
+            window.location.href = '../../comprar-drivecoins.php';
+        }
+        
+        // Update DriveCoins balance
+        function updateDriveCoinsBalance() {
+            fetch('../../controllers/DriveCoinController.php?action=get_balance')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('userDriveCoins').innerHTML = 
+                            `<i class="bi bi-coin"></i> ${data.formatted_balance}`;
+                        
+                        // Update global variable for other functions
+                        window.userDriveCoins = data.balance;
+                    }
+                })
+                .catch(error => console.error('Error updating DriveCoins balance:', error));
+        }
+        
         // Rent Vehicle Function
         function rentVehicle(vehicleName, pricePerHour) {
             window.userDriveCoins = <?php echo $driveCoinsBalance; ?>; // Saldo real de DriveCoins (variable global)
@@ -409,27 +430,6 @@ if ($result->num_rows > 0) {
         function showMyRentals() {
             const modal = new bootstrap.Modal(document.getElementById('rentalHistoryModal'));
             modal.show();
-        }
-        
-        // DriveCoins Interactive Functions
-        function buyDriveCoins() {
-            window.location.href = '../../comprar-drivecoins.php';
-        }
-        
-        // Update DriveCoins balance
-        function updateDriveCoinsBalance() {
-            fetch('../../controllers/DriveCoinController.php?action=get_balance')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('userDriveCoins').innerHTML = 
-                            `<i class="bi bi-coin"></i> ${data.formatted_balance}`;
-                        
-                        // Update global variable for other functions
-                        window.userDriveCoins = data.balance;
-                    }
-                })
-                .catch(error => console.error('Error updating DriveCoins balance:', error));
         }
         
         // Find Nearest Car
