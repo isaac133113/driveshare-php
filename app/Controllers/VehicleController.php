@@ -33,7 +33,7 @@ class VehicleController extends BaseController {
         }
         
         // Cargar la vista
-        include __DIR__ . '/../views/vehicles/index.php';
+        include __DIR__ . '/../Views/vehicles/index.php';
     }
     
     private function getVehiclesList($filtros = []) {
