@@ -1,0 +1,22 @@
+RewriteEngine On
+
+# Redirigir a la carpeta public si no estamos en ella
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.*)$ /public/$1 [L,R=301]
+
+# Si el archivo no existe, enviar a index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# Configuraciones de seguridad
+<Files "*.php">
+    Order allow,deny
+    Allow from all
+</Files>
+
+# Prevenir acceso directo a archivos sensibles
+<Files ~ "(\.env|\.git|\.htaccess|composer\.json|composer\.lock)$">
+    Order allow,deny
+    Deny from all
+</Files>
