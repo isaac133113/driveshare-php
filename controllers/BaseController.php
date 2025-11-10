@@ -66,5 +66,12 @@ abstract class BaseController {
             $this->redirect('login.php');
         }
     }
+    
+    public function debuguear($variable) {
+        echo '<pre>';
+        var_dump($variable);
+        echo '</pre>';
+        exit;
+    }
 }
 ?>

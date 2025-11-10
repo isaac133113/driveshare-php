@@ -54,7 +54,7 @@ class HorariController extends BaseController {
         $stats = $this->horariModel->getHorarisStats($_SESSION['user_id']);
         
         // Cargar la vista
-        include __DIR__ . '/../views/horaris/index.php';
+        include __DIR__ . '/../views/horaris/horaris.php';
     }
     
     private function handlePostRequest() {
@@ -173,19 +173,3 @@ class HorariController extends BaseController {
         $this->redirect('login.php');
     }
 }
-
-// Punto de entrada del controlador
-$controller = new HorariController();
-
-if (isset($_GET['action'])) {
-    switch ($_GET['action']) {
-        case 'search':
-            $controller->search();
-            break;
-        default:
-            $controller->index();
-    }
-} else {
-    $controller->index();
-}
-?>

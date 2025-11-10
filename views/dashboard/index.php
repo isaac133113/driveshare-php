@@ -134,7 +134,7 @@ $userPreferences = $userPreferences ?? [
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <div class="d-grid">
-                                    <a href="horaris.php" class="btn btn-outline-primary btn-lg rounded-3">
+                                    <a href="/public/index.php?controller=horaris&action=index" class="btn btn-outline-primary btn-lg rounded-3">
                                         <i class="bi bi-calendar-week me-2"></i>Gestionar Horaris
                                         <small class="d-block text-muted">Organitza les teves rutes</small>
                                     </a>
