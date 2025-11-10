@@ -60,7 +60,7 @@
                 <a class="nav-link" href="../dashboard.php">
                     <i class="bi bi-house"></i> Inici
                 </a>
-                <a class="nav-link" href="../ver-coches.php">
+                <a class="nav-link" href="/ver-coches">
                     <i class="bi bi-car-front"></i> Vehicles
                 </a>
                 <a class="nav-link active" href="ChatController.php">

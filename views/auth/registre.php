@@ -20,7 +20,44 @@
                             <p class="text-muted">Crea el teu compte</p>
                         </div>
                         
-                        <form action="registre.php" method="post" enctype="multipart/form-data">
+                        <?php if (!empty($errors)): ?>
+                        <div class="alert alert-danger rounded-3" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            <strong>Hi ha hagut errors:</strong>
+                            <ul class="mb-0 mt-2">
+                                <?php foreach ($errors as $error): ?>
+                                    <li><?= htmlspecialchars($error) ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                        <?php endif; ?>
+                        
+                        <?php if ($success): ?>
+                        <div class="alert alert-success rounded-3" role="alert">
+                            <i class="bi bi-check-circle me-2"></i>
+                            <strong>Usuari registrat correctament!</strong>
+                            <div class="mt-2">
+                                <small>Serà redirigit al login en <span id="countdown">3</span> segons...</small><br>
+                                <a href="../../public/index.php?controller=auth&action=login" class="btn btn-sm btn-outline-success mt-2">
+                                    <i class="bi bi-box-arrow-in-right me-1"></i>Anar al Login ara
+                                </a>
+                            </div>
+                        </div>
+                        <script>
+                            let seconds = 3;
+                            const countdownElement = document.getElementById("countdown");
+                            const interval = setInterval(function() {
+                                seconds--;
+                                countdownElement.textContent = seconds;
+                                if (seconds <= 0) {
+                                    clearInterval(interval);
+                                    window.location.href = "../../public/index.php?controller=auth&action=login";
+                                }
+                            }, 1000);
+                        </script>
+                        <?php endif; ?>
+                        
+                        <form action="../../public/index.php?controller=auth&action=register" method="post" enctype="multipart/form-data">
                             <div class="mb-3">
                                 <label for="nom" class="form-label fw-semibold">
                                     <i class="bi bi-person me-2"></i>Nom
@@ -62,7 +99,7 @@
                             <div class="text-center mt-3">
                                 <p class="text-muted mb-0">
                                     Ja tens compte? 
-                                    <a href="login.php" class="text-primary fw-semibold text-decoration-none">
+                                    <a href="../../public/index.php?controller=auth&action=login" class="text-primary fw-semibold text-decoration-none">
                                         Inicia sessió aquí
                                     </a>
                                 </p>
@@ -73,96 +110,7 @@
             </div>
         </div>
     </div>
-    <?php
-    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        echo '<div class="container mt-4">';
-        echo '<div class="row justify-content-center">';
-        echo '<div class="col-lg-5 col-md-7">';
-        
-        $nom = htmlspecialchars($_POST['nom']);
-        $cognom = htmlspecialchars($_POST['cognom']);
-        $email = htmlspecialchars($_POST['email']);
-        $password = $_POST['password'];
-        
-        // Validar contraseña
-        $password_errors = [];
-        if (strlen($password) < 8) {
-            $password_errors[] = "Ha de tenir almenys 8 caràcters";
-        }
-        if (!preg_match('/[A-Z]/', $password)) {
-            $password_errors[] = "Ha de contenir almenys una lletra majúscula";
-        }
-        if (!preg_match('/[a-z]/', $password)) {
-            $password_errors[] = "Ha de contenir almenys una lletra minúscula";
-        }
-        if (!preg_match('/[0-9]/', $password)) {
-            $password_errors[] = "Ha de contenir almenys un número";
-        }
-        if (!preg_match('/[^A-Za-z0-9]/', $password)) {
-            $password_errors[] = "Ha de contenir almenys un caràcter especial";
-        }
-        
-        if (!empty($password_errors)) {
-            echo '<div class="alert alert-danger rounded-3" role="alert">';
-            echo '<i class="bi bi-exclamation-triangle me-2"></i>';
-            echo '<strong>La contrasenya no és vàlida:</strong><ul class="mb-0 mt-2">';
-            foreach ($password_errors as $error) {
-                echo '<li>' . $error . '</li>';
-            }
-            echo '</ul></div>';
-        } else {
-            $password_hash = password_hash($password, PASSWORD_DEFAULT);
-        
-            $mysql = new mysqli('localhost','root','','aplicaciocompra');
-            if($mysql->connect_error){
-                echo '<div class="alert alert-danger rounded-3" role="alert">';
-                echo '<i class="bi bi-exclamation-triangle me-2"></i>';
-                echo 'Error de connexió: '.$mysql->connect_error;
-                echo '</div>';
-            } else {
-                $sql="INSERT INTO usuaris (nom, cognoms, correu, contrasenya) VALUES (?, ?, ?, ?)";
-                $stmt=$mysql->prepare($sql);
-                $stmt->bind_param('ssss',$nom,$cognom,$email,$password_hash);
-                if($stmt->execute()){
-                    echo '<div class="alert alert-success rounded-3" role="alert">';
-                    echo '<i class="bi bi-check-circle me-2"></i>';
-                    echo '<strong>Usuari registrat correctament!</strong>';
-                    echo '<div class="mt-2">';
-                    echo '<small>Serà redirigit al login en <span id="countdown">3</span> segons...</small><br>';
-                    echo '<a href="login.php" class="btn btn-sm btn-outline-success mt-2">';
-                    echo '<i class="bi bi-box-arrow-in-right me-1"></i>Anar al Login ara';
-                    echo '</a>';
-                    echo '</div>';
-                    echo '</div>';
-                    echo '<script>';
-                    echo 'let seconds = 3;';
-                    echo 'const countdownElement = document.getElementById("countdown");';
-                    echo 'const interval = setInterval(function() {';
-                    echo '  seconds--;';
-                    echo '  countdownElement.textContent = seconds;';
-                    echo '  if (seconds <= 0) {';
-                    echo '    clearInterval(interval);';
-                    echo '    window.location.href = "login.php";';
-                    echo '  }';
-                    echo '}, 1000);';
-                    echo '</script>';
-                } else {
-                    echo '<div class="alert alert-danger rounded-3" role="alert">';
-                    echo '<i class="bi bi-exclamation-triangle me-2"></i>';
-                    echo 'Error al registrar l\'usuari: '.$stmt->error;
-                    echo '</div>';
-                }
-                $stmt->close();
-                $mysql->close();
-            }
-        }
-        
-        echo '</div>';
-        echo '</div>';
-        echo '</div>';
-    }
-    ?>
-
+    
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     

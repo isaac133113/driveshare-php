@@ -89,7 +89,11 @@ class UserModel {
             $saldo
         );
         
-        return $stmt->execute();
+        if ($stmt->execute()) {
+            return $this->db->insert_id;
+        } else {
+            return false;
+        }
     }
     
     /**
@@ -337,6 +341,57 @@ class UserModel {
         $stmt->bind_param("i", $userId);
         
         return $stmt->execute();
+    }
+    
+    /**
+     * Agregar DriveCoins al balance del usuario
+     */
+    public function addDriveCoins($userId, $amount, $description = '', $transactionType = 'purchase') {
+        try {
+            // Iniciar transacción
+            $this->db->autocommit(false);
+            
+            // Actualizar balance del usuario
+            $stmt = $this->db->prepare("UPDATE usuaris SET drivecoins_balance = drivecoins_balance + ? WHERE id = ?");
+            $stmt->bind_param("di", $amount, $userId);
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Error al actualizar el balance");
+            }
+            
+            // Registrar transacción
+            $stmt = $this->db->prepare("INSERT INTO drivecoins_transactions (user_id, transaction_type, amount, description) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("isds", $userId, $transactionType, $amount, $description);
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Error al registrar la transacción");
+            }
+            
+            // Confirmar transacción
+            $this->db->commit();
+            $this->db->autocommit(true);
+            
+            return true;
+            
+        } catch (Exception $e) {
+            // Revertir en caso de error
+            $this->db->rollback();
+            $this->db->autocommit(true);
+            return false;
+        }
+    }
+    
+    /**
+     * Obtener balance de DriveCoins del usuario
+     */
+    public function getDriveCoinsBalance($userId) {
+        $stmt = $this->db->prepare("SELECT drivecoins_balance FROM usuaris WHERE id = ?");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+        
+        return $user ? floatval($user['drivecoins_balance']) : 0;
     }
 }
 ?>

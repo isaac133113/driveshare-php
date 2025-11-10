@@ -40,16 +40,13 @@ class AuthController extends BaseController {
         include __DIR__ . '/../views/auth/login.php';
     }
   
-       public function register() {
-        if ($this->isAuthenticated()) {
-            $this->redirect('../../dashboard.php');
-        }
-        
+    public function register() {
         $errors = [];
         $success = false;
+        $user = [];
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $data = [
+            $user = [
                 'nom' => $this->sanitizeInput($_POST['nom']),
                 'cognoms' => $this->sanitizeInput($_POST['cognom']),
                 'email' => $this->sanitizeInput($_POST['email']),
@@ -57,31 +54,37 @@ class AuthController extends BaseController {
             ];
             
             // Validaciones
-            if (empty($data['nom'])) {
+            if (empty($user['nom'])) {
                 $errors[] = 'El nom és obligatori.';
             }
             
-            if (empty($data['cognoms'])) {
+            if (empty($user['cognoms'])) {
                 $errors[] = 'Els cognoms són obligatoris.';
             }
             
-            if (empty($data['email'])) {
+            if (empty($user['email'])) {
                 $errors[] = 'L\'email és obligatori.';
-            } elseif (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
+            } elseif (!filter_var($user['email'], FILTER_VALIDATE_EMAIL)) {
                 $errors[] = 'L\'email no és vàlid.';
-            } elseif ($this->userModel->emailExists($data['email'])) {
+            } elseif ($this->userModel->emailExists($user['email'])) {
                 $errors[] = 'Aquest email ja està registrat.';
             }
             
-            if (empty($data['password'])) {
+            if (empty($user['password'])) {
                 $errors[] = 'La contrasenya és obligatòria.';
-            } elseif (!$this->userModel->validatePassword($data['password'])) {
+            } elseif (!$this->userModel->validatePassword($user['password'])) {
                 $errors[] = 'La contrasenya ha de tenir mínim 8 caràcters, una majúscula, una minúscula, un número i un caràcter especial.';
             }
             
             if (empty($errors)) {
-                if ($this->userModel->createUser($data)) {
+                $userId = $this->userModel->createUser($user);
+                if ($userId) {
+                    // Asignar DriveCoins de bienvenida
+                    $welcomeCoins = 50;
+                    $this->userModel->addDriveCoins($userId, $welcomeCoins, 'Benvinguda', 'bonus');
+                    
                     $success = true;
+                    $this->setFlashMessage('Usuari registrat correctament! Has rebut 50 DriveCoins de benvinguda.', 'success');
                 } else {
                     $errors[] = 'Error al crear l\'usuari. Si us plau, torna-ho a intentar.';
                 }
@@ -89,7 +92,7 @@ class AuthController extends BaseController {
         }
         
         // Cargar la vista
-        include __DIR__ . '/../views/horaris/registre.php';
+        include __DIR__ . '/../views/auth/registre.php';
     }
         
     public function logout() {

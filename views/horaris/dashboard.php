@@ -1,19 +1,16 @@
 <?php
 session_start();
 
-// Nota: mover includes y lógica a los controladores.
-// Esta vista debe recibir variables preparadas por el controlador (ej. $_SESSION y $driveCoinsBalance, $userPreferences, $message, $messageType).
-// Proveer valores por defecto seguros para evitar warnings si se accede directamente.
+// Cargar clases necesarias
+require_once '../../config/config.php';
+require_once '../../config/Database.php';
+require_once '../../models/UserModel.php';
+
+// Verificar si el usuario está logueado
 if (!isset($_SESSION['user_id'])) {
-    // Si se abre directamente, redirigir al login central.
     header('Location: login.php');
     exit;
 }
-
-$message = $message ?? '';
-$messageType = $messageType ?? '';
-$driveCoinsBalance = $driveCoinsBalance ?? 0;
-$userPreferences = $userPreferences ?? ['email_notifications' => 1, 'sms_notifications' => 0, 'default_vehicle' => '', 'saldo' => 0.00];
 
 // Logout functionality
 if (isset($_GET['logout'])) {
@@ -116,6 +113,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 break;
                 
+            case 'add_credits':
+                $amount = floatval($_POST['amount']);
+                
+                if ($amount > 0) {
+                    // Actualizar saldo en la base de datos
+                    $conn = Database::getInstance()->getConnection();
+                    $stmt = $conn->prepare("UPDATE usuaris SET saldo = saldo + ? WHERE id = ?");
+                    $stmt->bind_param("di", $amount, $_SESSION['user_id']);
+                    
+                    if ($stmt->execute()) {
+                        // Obtener el nuevo saldo
+                        $stmt = $conn->prepare("SELECT saldo FROM usuaris WHERE id = ?");
+                        $stmt->bind_param("i", $_SESSION['user_id']);
+                        $stmt->execute();
+                        $result = $stmt->get_result();
+                        $row = $result->fetch_assoc();
+                        
+                        // Respuesta AJAX
+                        if (isset($_POST['ajax']) && $_POST['ajax'] == '1') {
+                            echo json_encode([
+                                'success' => true,
+                                'message' => 'Crèdits afegits correctament!',
+                                'newBalance' => $row['saldo']
+                            ]);
+                            exit;
+                        }
+                        
+                        $message = 'Crèdits afegits correctament!';
+                        $messageType = 'success';
+                        $userPreferences['saldo'] = $row['saldo'];
+                    } else {
+                        if (isset($_POST['ajax']) && $_POST['ajax'] == '1') {
+                            echo json_encode([
+                                'success' => false,
+                                'message' => 'Error al afegir crèdits.'
+                            ]);
+                            exit;
+                        }
+                        
+                        $message = 'Error al afegir crèdits.';
+                        $messageType = 'danger';
+                    }
+                }
+                break;
+                
             case 'save_preferences':
                 $emailNotifications = isset($_POST['emailNotifications']) ? 1 : 0;
                 $smsNotifications = isset($_POST['smsNotifications']) ? 1 : 0;
@@ -157,17 +199,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Cargar preferencias del usuario y DriveCoins
+// Cargar preferencias del usuario
 $userPreferences = [
     'email_notifications' => 1,
     'sms_notifications' => 0,
     'default_vehicle' => '',
     'saldo' => 0.00
 ];
-
-// Obtener saldo de DriveCoins
-$driveCoinModel = new DriveCoinModel();
-$driveCoinsBalance = $driveCoinModel->getBalance($_SESSION['user_id']);
 
 $conn = Database::getInstance()->getConnection();
 
@@ -280,11 +318,10 @@ if ($result->num_rows > 0) {
                             </div>
                             <div class="col-md-6 mb-3">
                                 <div class="border rounded-3 p-3 bg-success bg-opacity-25">
-                                    <small class="text-muted"><i class="bi bi-coin me-1"></i>DriveCoins Disponibles</small>
+                                    <small class="text-muted"><i class="bi bi-wallet2 me-1"></i>Crèdits Disponibles</small>
                                     <div class="fw-bold text-success">
-                                        <span id="userDriveCoins"><i class="bi bi-coin"></i> <?php echo number_format($driveCoinsBalance, 0, ',', '.'); ?> DC</span>
+                                        <span id="userBalance">€ <?php echo number_format($userPreferences['saldo'], 2, ',', '.'); ?></span>
                                     </div>
-                                    <small class="text-muted">Moneda virtual DriveShare</small>
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
@@ -303,10 +340,67 @@ if ($result->num_rows > 0) {
                 <div class="card border-0 shadow-lg rounded-4">
                     <div class="card-header bg-dark text-white rounded-top-4">
                         <h5 class="mb-0">
-                            <i class="bi bi-car-front me-2"></i>Menú
+                            <i class="bi bi-car-front me-2"></i>Vehicles Disponibles
                         </h5>
                     </div>
                     <div class="card-body p-4">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="card border-primary border-2">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-car-front-fill text-primary display-6"></i>
+                                        <h6 class="fw-bold mt-2">Seat Ibiza</h6>
+                                        <p class="text-muted small">Econòmic • 5 places • Manual</p>
+                                        <div class="h6 text-primary fw-bold">€12/hora</div>
+                                        <button class="btn btn-primary btn-sm" onclick="rentVehicle('Seat Ibiza', '12')">
+                                            <i class="bi bi-calendar-check me-1"></i>Llogar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-warning border-2">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-truck text-warning display-6"></i>
+                                        <h6 class="fw-bold mt-2">Ford Focus</h6>
+                                        <p class="text-muted small">Compacte • 5 places • Automàtic</p>
+                                        <div class="h6 text-warning fw-bold">€18/hora</div>
+                                        <button class="btn btn-warning btn-sm" onclick="rentVehicle('Ford Focus', '18')">
+                                            <i class="bi bi-calendar-check me-1"></i>Llogar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-success border-2">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-ev-front text-success display-6"></i>
+                                        <h6 class="fw-bold mt-2">Tesla Model 3</h6>
+                                        <p class="text-muted small">Premium • 5 places • Elèctric</p>
+                                        <div class="h6 text-success fw-bold">€35/hora</div>
+                                        <button class="btn btn-success btn-sm" onclick="rentVehicle('Tesla Model 3', '35')">
+                                            <i class="bi bi-calendar-check me-1"></i>Llogar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card border-danger border-2">
+                                    <div class="card-body text-center">
+                                        <i class="bi bi-truck-front text-danger display-6"></i>
+                                        <h6 class="fw-bold mt-2">BMW X5</h6>
+                                        <p class="text-muted small">SUV • 7 places • Premium</p>
+                                        <div class="h6 text-danger fw-bold">€45/hora</div>
+                                        <button class="btn btn-danger btn-sm" onclick="rentVehicle('BMW X5', '45')">
+                                            <i class="bi bi-calendar-check me-1"></i>Llogar
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr class="my-4">
+                        
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <div class="d-grid">
@@ -318,37 +412,17 @@ if ($result->num_rows > 0) {
                             </div>
                             <div class="col-md-4">
                                 <div class="d-grid">
-                                    <a href="../../comprar-drivecoins.php" class="btn btn-outline-success btn-lg rounded-3">
-                                        <i class="bi bi-coin me-2"></i>Comprar DriveCoins
-                                        <small class="d-block text-muted">Moneda virtual DriveShare</small>
-                                    </a>
+                                    <button class="btn btn-outline-success btn-lg rounded-3" onclick="addCredits()">
+                                        <i class="bi bi-wallet2 me-2"></i>Afegir Crèdits
+                                        <small class="d-block text-muted">Recarregar compte</small>
+                                    </button>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="d-grid">
-                                    <a href="../../ver-coches.php" class="btn btn-outline-info btn-lg rounded-3">
-                                        <i class="bi bi-car-front me-2"></i>Ver Coches
-                                        <small class="d-block text-muted">Explorar y reservar</small>
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- Segunda fila de botones -->
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-6">
-                                <div class="d-grid">
-                                    <a href="../../buscar-coche.php" class="btn btn-outline-warning btn-lg rounded-3">
-                                        <i class="bi bi-geo-alt me-2"></i>Buscar Coche Cercano
-                                        <small class="d-block text-muted">Mapa interactivo con ubicaciones</small>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-grid">
-                                    <button class="btn btn-outline-secondary btn-lg rounded-3" onclick="viewReservations()">
-                                        <i class="bi bi-clipboard-check me-2"></i>Mis Reservas
-                                        <small class="d-block text-muted">Historial y reservas activas</small>
+                                    <button class="btn btn-outline-info btn-lg rounded-3" onclick="findNearestCar()">
+                                        <i class="bi bi-geo-alt me-2"></i>Troba Cotxe Proper
+                                        <small class="d-block text-muted">Localitza vehicles</small>
                                     </button>
                                 </div>
                             </div>
@@ -364,30 +438,9 @@ if ($result->num_rows > 0) {
     
     <!-- DriveShare Interactive Functions -->
     <script>
-        // DriveCoins Interactive Functions
-        function buyDriveCoins() {
-            window.location.href = '../../comprar-drivecoins.php';
-        }
-        
-        // Update DriveCoins balance
-        function updateDriveCoinsBalance() {
-            fetch('../../controllers/DriveCoinController.php?action=get_balance')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('userDriveCoins').innerHTML = 
-                            `<i class="bi bi-coin"></i> ${data.formatted_balance}`;
-                        
-                        // Update global variable for other functions
-                        window.userDriveCoins = data.balance;
-                    }
-                })
-                .catch(error => console.error('Error updating DriveCoins balance:', error));
-        }
-        
         // Rent Vehicle Function
         function rentVehicle(vehicleName, pricePerHour) {
-            window.userDriveCoins = <?php echo $driveCoinsBalance; ?>; // Saldo real de DriveCoins (variable global)
+            window.userCredits = <?php echo $userPreferences['saldo']; ?>; // Saldo real de l'usuari (variable global)
             const currentHour = new Date().getHours();
             
             if (currentHour >= 22 || currentHour < 6) {
@@ -395,11 +448,8 @@ if ($result->num_rows > 0) {
                 return;
             }
             
-            // Convertir precio por hora a DriveCoins (1€ = 10 DC)
-            const priceInDriveCoins = pricePerHour * 10;
-            
             // Mostrar modal de alquiler
-            showRentModal(vehicleName, priceInDriveCoins, window.userDriveCoins);
+            showRentModal(vehicleName, pricePerHour, window.userCredits);
         }
         
         // Show Rental Success
@@ -418,7 +468,7 @@ if ($result->num_rows > 0) {
                             <p><strong>Codi de reserva:</strong> ${rentalCode}</p>
                             <p><strong>Inici:</strong> ${startTime.toLocaleString()}</p>
                             <p><strong>Fi:</strong> ${endTime.toLocaleString()}</p>
-                            <p><strong>Cost:</strong> <i class="bi bi-coin"></i> ${cost.toFixed(0)} DC</p>
+                            <p><strong>Cost:</strong> €${cost.toFixed(2)}</p>
                         </div>
                     </div>
                     <div class="alert alert-info mt-3">
@@ -432,6 +482,12 @@ if ($result->num_rows > 0) {
         // Show My Rentals
         function showMyRentals() {
             const modal = new bootstrap.Modal(document.getElementById('rentalHistoryModal'));
+            modal.show();
+        }
+        
+        // Add Credits Function
+        function addCredits() {
+            const modal = new bootstrap.Modal(document.getElementById('creditsModal'));
             modal.show();
         }
         
@@ -666,6 +722,41 @@ if ($result->num_rows > 0) {
         </div>
     </div>
 
+    <!-- Modal de Recàrrega de Crèdits -->
+    <div class="modal fade" id="creditsModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-wallet2 me-2"></i>Recarregar Crèdits
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted mb-3">Selecciona la quantitat a recarregar:</p>
+                    <div class="row g-2">
+                        <div class="col-6">
+                            <button class="btn btn-outline-primary w-100" onclick="processCredit('€25')">€25</button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-primary w-100" onclick="processCredit('€50')">€50</button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-primary w-100" onclick="processCredit('€100')">€100</button>
+                        </div>
+                        <div class="col-6">
+                            <button class="btn btn-outline-primary w-100" onclick="processCredit('€200')">€200</button>
+                        </div>
+                    </div>
+                    <hr>
+                    <small class="text-muted">
+                        <i class="bi bi-credit-card me-1"></i>Mètode de pagament: Targeta acabada en ****1234
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Vehicles Propers -->
     <div class="modal fade" id="nearbyVehiclesModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
@@ -772,13 +863,13 @@ if ($result->num_rows > 0) {
             modal.show();
         }
 
-        function showRentModal(vehicleName, pricePerHourDC, userDriveCoins) {
+        function showRentModal(vehicleName, pricePerHour, userCredits) {
             const content = `
                 <div class="card">
                     <div class="card-body">
                         <h5><i class="bi bi-car-front me-2"></i>${vehicleName}</h5>
-                        <p class="text-muted">Preu: <i class="bi bi-coin"></i> ${pricePerHourDC} DC/hora</p>
-                        <p class="text-success">DriveCoins disponibles: <i class="bi bi-coin"></i> ${userDriveCoins.toFixed(0)} DC</p>
+                        <p class="text-muted">Preu: €${pricePerHour}/hora</p>
+                        <p class="text-success">Crèdits disponibles: €${userCredits.toFixed(2)}</p>
                         
                         <div class="mb-3">
                             <label for="rentHours" class="form-label">Quantes hores vols llogar?</label>
@@ -787,10 +878,10 @@ if ($result->num_rows > 0) {
                         
                         <div class="mb-3">
                             <label class="form-label">Cost calculat:</label>
-                            <div class="h5 text-primary" id="calculatedCost"><i class="bi bi-coin"></i> ${pricePerHourDC} DC</div>
+                            <div class="h5 text-primary" id="calculatedCost">€${pricePerHour}</div>
                         </div>
                         
-                        <button class="btn btn-primary w-100" onclick="confirmRental('${vehicleName}', ${pricePerHourDC}, ${userDriveCoins})">
+                        <button class="btn btn-primary w-100" onclick="confirmRental('${vehicleName}', ${pricePerHour}, ${userCredits})">
                             <i class="bi bi-check-circle me-1"></i>Confirmar Lloguer
                         </button>
                     </div>
@@ -804,38 +895,101 @@ if ($result->num_rows > 0) {
             // Actualizar costo en tiempo real
             document.getElementById('rentHours').addEventListener('input', function() {
                 const hours = this.value;
-                const cost = (parseFloat(pricePerHourDC) * parseFloat(hours)).toFixed(0);
-                document.getElementById('calculatedCost').innerHTML = '<i class="bi bi-coin"></i> ' + cost + ' DC';
+                const cost = (parseFloat(pricePerHour) * parseFloat(hours)).toFixed(2);
+                document.getElementById('calculatedCost').textContent = '€' + cost;
             });
         }
 
-        function confirmRental(vehicleName, pricePerHourDC, userDriveCoins) {
+        function confirmRental(vehicleName, pricePerHour, userCredits) {
             const hours = document.getElementById('rentHours').value;
-            const totalCost = parseFloat(pricePerHourDC) * parseFloat(hours);
+            const totalCost = parseFloat(pricePerHour) * parseFloat(hours);
             
-            if (totalCost > userDriveCoins) {
-                showInfoModal('DriveCoins Insuficients', `
+            if (totalCost > userCredits) {
+                showInfoModal('Crèdits Insuficients', `
                     <div class="text-center">
                         <i class="bi bi-exclamation-triangle text-warning display-4"></i>
-                        <h5 class="mt-3">No tens suficients DriveCoins!</h5>
+                        <h5 class="mt-3">No tens suficients crèdits!</h5>
                         <div class="card mt-3">
                             <div class="card-body">
-                                <p><strong>Cost:</strong> <i class="bi bi-coin"></i> ${totalCost.toFixed(0)} DC</p>
-                                <p><strong>DriveCoins disponibles:</strong> <i class="bi bi-coin"></i> ${userDriveCoins.toFixed(0)} DC</p>
-                                <p class="text-danger"><strong>Necessites:</strong> <i class="bi bi-coin"></i> ${(totalCost - userDriveCoins).toFixed(0)} DC més</p>
+                                <p><strong>Cost:</strong> €${totalCost.toFixed(2)}</p>
+                                <p><strong>Crèdits disponibles:</strong> €${userCredits.toFixed(2)}</p>
+                                <p class="text-danger"><strong>Necessites:</strong> €${(totalCost - userCredits).toFixed(2)} més</p>
                             </div>
                         </div>
-                        <a href="../../comprar-drivecoins.php" class="btn btn-primary mt-3">Comprar DriveCoins</a>
+                        <button class="btn btn-primary mt-3" onclick="addCredits()">Recarregar Crèdits</button>
                     </div>
                 `);
             } else {
                 bootstrap.Modal.getInstance(document.getElementById('rentModal')).hide();
                 setTimeout(() => showRentalSuccess(vehicleName, hours, totalCost), 300);
-                
-                // Actualizar saldo (simulado)
-                window.userDriveCoins -= totalCost;
-                updateDriveCoinsBalance();
             }
+        }
+
+        function processCredit(amount) {
+            // Extraer solo el número del string (ej: "€25" -> 25)
+            const numericAmount = parseFloat(amount.replace('€', ''));
+            
+            // Enviar petición AJAX
+            const formData = new FormData();
+            formData.append('action', 'add_credits');
+            formData.append('amount', numericAmount);
+            formData.append('ajax', '1');
+            
+            fetch(window.location.href, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Actualizar el saldo en el dashboard
+                    document.getElementById('userBalance').innerHTML = '€ ' + parseFloat(data.newBalance).toLocaleString('ca-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                    
+                    // Actualizar la variable global
+                    window.userCredits = data.newBalance;
+                    
+                    // Cerrar el modal
+                    bootstrap.Modal.getInstance(document.getElementById('creditsModal')).hide();
+                    
+                    setTimeout(() => {
+                        showInfoModal('Recàrrega Exitosa', `
+                            <div class="text-center">
+                                <i class="bi bi-check-circle text-success display-4"></i>
+                                <h5 class="mt-3">Recàrrega completada!</h5>
+                                <p class="mt-3">S'han afegit <strong>${amount}</strong> al teu compte.</p>
+                                <p><strong>Nou saldo:</strong> €${parseFloat(data.newBalance).toLocaleString('ca-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                                <div class="alert alert-info">
+                                    <i class="bi bi-credit-card me-2"></i>Carregat a la targeta ****1234
+                                </div>
+                            </div>
+                        `);
+                    }, 300);
+                } else {
+                    bootstrap.Modal.getInstance(document.getElementById('creditsModal')).hide();
+                    setTimeout(() => {
+                        showInfoModal('Error', `
+                            <div class="text-center">
+                                <i class="bi bi-exclamation-triangle text-danger display-4"></i>
+                                <h5 class="mt-3">Error en la recàrrega</h5>
+                                <p>${data.message}</p>
+                            </div>
+                        `);
+                    }, 300);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                bootstrap.Modal.getInstance(document.getElementById('creditsModal')).hide();
+                setTimeout(() => {
+                    showInfoModal('Error', `
+                        <div class="text-center">
+                            <i class="bi bi-exclamation-triangle text-danger display-4"></i>
+                            <h5 class="mt-3">Error de connexió</h5>
+                            <p>Hi ha hagut un problema al processar la petició.</p>
+                        </div>
+                    `);
+                }, 300);
+            });
         }
 
         function reserveNearbyVehicle(vehicleName) {

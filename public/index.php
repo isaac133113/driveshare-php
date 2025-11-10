@@ -37,3 +37,4 @@ if (method_exists($ctrl, $action)) {
     http_response_code(404);
     echo "Acción no encontrada";
 }
+?>

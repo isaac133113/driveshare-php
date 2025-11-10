@@ -26,6 +26,11 @@ abstract class BaseController {
         $this->redirect($url);
     }
     
+    protected function setFlashMessage($message, $type = 'success') {
+        $_SESSION['flash_message'] = $message;
+        $_SESSION['flash_type'] = $type;
+    }
+    
     protected function getFlashMessage() {
         $message = $_SESSION['flash_message'] ?? '';
         $type = $_SESSION['flash_type'] ?? 'info';
@@ -65,6 +70,12 @@ abstract class BaseController {
         if (!$this->isAuthenticated()) {
             $this->redirect('login.php');
         }
+    }
+    protected function debugear($data) {
+        echo '<pre>';
+        print_r($data);
+        echo '</pre>';
+        exit;
     }
 }
 ?>
