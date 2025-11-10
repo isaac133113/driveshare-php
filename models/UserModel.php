@@ -2,12 +2,50 @@
 require_once __DIR__ . '/../config/Database.php';
 
 class UserModel {
+    // Definición de la tabla y sus columnas
+    protected static $tabla = 'usuaris';
+    protected static $columnasDB = [
+        'id',
+        'nom',
+        'cognoms',
+        'correu',
+        'contrasenya',
+        'creat',
+        'email_notifications',
+        'sms_notifications',
+        'default_vehicle',
+        'saldo'
+    ];
+
+    // Propiedades que corresponden a las columnas de la tabla
+    public $id;
+    public $nom;
+    public $cognoms;
+    public $correu;
+    public $contrasenya;
+    public $creat;
+    public $email_notifications;
+    public $sms_notifications;
+    public $default_vehicle;
+    public $saldo;
+
     private $db;
     
-    public function __construct() {
+    public function __construct($args = []) {
         $this->db = Database::getInstance()->getConnection();
+        
+        // Asignación de valores desde los argumentos
+        $this->id = $args['id'] ?? null;
+        $this->nom = $args['nom'] ?? '';
+        $this->cognoms = $args['cognoms'] ?? '';
+        $this->correu = $args['correu'] ?? '';
+        $this->contrasenya = $args['contrasenya'] ?? '';
+        $this->creat = $args['creat'] ?? date('Y-m-d H:i:s');
+        $this->email_notifications = $args['email_notifications'] ?? 1;
+        $this->sms_notifications = $args['sms_notifications'] ?? 0;
+        $this->default_vehicle = $args['default_vehicle'] ?? '';
+        $this->saldo = $args['saldo'] ?? 0.00;
     }
-    
     /**
      * Autenticar usuario
      */
@@ -31,8 +69,25 @@ class UserModel {
     public function createUser($data) {
         $hashedPassword = password_hash($data['password'], PASSWORD_DEFAULT);
         
-        $stmt = $this->db->prepare("INSERT INTO usuaris (nom, cognoms, correu, contrasenya, data_registre) VALUES (?, ?, ?, ?, NOW())");
-        $stmt->bind_param("ssss", $data['nom'], $data['cognoms'], $data['email'], $hashedPassword);
+        $stmt = $this->db->prepare("INSERT INTO usuaris (nom, cognoms, correu, contrasenya, creat, 
+            email_notifications, sms_notifications, default_vehicle, saldo) 
+            VALUES (?, ?, ?, ?, NOW(), ?, ?, ?, ?)");
+        
+        $email_notif = $data['email_notifications'] ?? 1;
+        $sms_notif = $data['sms_notifications'] ?? 0;
+        $default_vehicle = $data['default_vehicle'] ?? '';
+        $saldo = $data['saldo'] ?? 0.00;
+        
+        $stmt->bind_param("sssssisd", 
+            $data['nom'], 
+            $data['cognoms'], 
+            $data['email'], 
+            $hashedPassword,
+            $email_notif,
+            $sms_notif,
+            $default_vehicle,
+            $saldo
+        );
         
         return $stmt->execute();
     }
@@ -165,19 +220,6 @@ class UserModel {
         
         return $stmt->execute() && $stmt->affected_rows > 0;
     }
-    
-    /**
-     * Registrar actividad del usuario
-     */
-    public function logUserActivity($userId, $action, $ipAddress = null) {
-        $ipAddress = $ipAddress ?: $_SERVER['REMOTE_ADDR'] ?? 'unknown';
-        
-        $stmt = $this->db->prepare("INSERT INTO user_activity (user_id, action, ip_address, created_at) VALUES (?, ?, ?, NOW())");
-        $stmt->bind_param("iss", $userId, $action, $ipAddress);
-        
-        return $stmt->execute();
-    }
-    
     /**
      * Registrar intento de login fallido
      */
@@ -194,32 +236,29 @@ class UserModel {
      * Obtener estadísticas del usuario
      */
     public function getUserStats($userId) {
-        $stats = [];
-        
-        // Total de horarios
-        $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM horaris_rutes WHERE user_id = ?");
-        $stmt->bind_param("i", $userId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $stats['total_horaris'] = $result->fetch_assoc()['total'];
-        
-        // Horarios este mes
-        $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM horaris_rutes WHERE user_id = ? AND MONTH(data_ruta) = MONTH(CURDATE()) AND YEAR(data_ruta) = YEAR(CURDATE())");
-        $stmt->bind_param("i", $userId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $stats['horaris_mes'] = $result->fetch_assoc()['total'];
-        
-        // Fecha de registro
-        $stmt = $this->db->prepare("SELECT data_registre FROM usuaris WHERE id = ?");
-        $stmt->bind_param("i", $userId);
-        $stmt->execute();
-        $result = $stmt->get_result();
-        $user = $result->fetch_assoc();
-        $stats['member_since'] = $user['data_registre'];
-        
-        return $stats;
+    $sql = "SELECT 
+                COUNT(hr.id) AS total_rutes,
+                MIN(hr.data_creacio) AS primera_ruta,
+                MAX(hr.data_creacio) AS ultima_ruta,
+                u.creat AS user_creat
+            FROM horaris_rutes hr
+            LEFT JOIN usuaris u ON u.id = ?
+            WHERE hr.user_id = ?";
+
+    $stmt = $this->db->prepare($sql);
+    if (!$stmt) return ['total_rutes' => 0, 'primera_ruta' => null, 'ultima_ruta' => null, 'user_creat' => null];
+
+    $stmt->bind_param('ii', $userId, $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $stats = $result ? $result->fetch_assoc() : null;
+
+    if (!$stats) {
+        return ['total_rutes' => 0, 'primera_ruta' => null, 'ultima_ruta' => null, 'user_creat' => null];
     }
+
+    return $stats;
+}
     
     /**
      * Obtener actividad reciente del usuario
@@ -237,7 +276,9 @@ class UserModel {
      * Obtener todos los usuarios (para administración)
      */
     public function getAllUsers($limit = 50, $offset = 0) {
-        $stmt = $this->db->prepare("SELECT id, nom, cognoms, correu, data_registre FROM usuaris ORDER BY data_registre DESC LIMIT ? OFFSET ?");
+        $stmt = $this->db->prepare("SELECT id, nom, cognoms, correu, creat, email_notifications, 
+            sms_notifications, default_vehicle, saldo 
+            FROM usuaris ORDER BY creat DESC LIMIT ? OFFSET ?");
         $stmt->bind_param("ii", $limit, $offset);
         $stmt->execute();
         $result = $stmt->get_result();

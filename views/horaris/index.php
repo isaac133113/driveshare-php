@@ -22,7 +22,7 @@
                 <a class="nav-link" href="../controllers/AuthController.php?action=profile">
                     <i class="bi bi-person"></i> Perfil
                 </a>
-                <a class="nav-link" href="../controllers/AuthController.php?action=logout">
+                <a class="nav-link" href="/controllers/AuthController.php?action=logout">
                     <i class="bi bi-box-arrow-right"></i> Sortir
                 </a>
             </div>

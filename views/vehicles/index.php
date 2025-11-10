@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ver Coches - DriveShare</title>
+    <title>Els Meus Vehicles - DriveShare</title>
     <!-- Bootstrap CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
@@ -35,162 +35,102 @@
                 <!-- Header Card -->
                 <div class="card border-0 shadow-lg rounded-4 mb-4">
                     <div class="card-body p-4">
-                        <div class="text-center mb-4">
-                            <i class="bi bi-car-front-fill text-primary display-4"></i>
-                            <h2 class="fw-bold text-dark mt-3">Ver Coches Disponibles</h2>
-                            <p class="text-muted">Explora nuestra flota de vehículos y encuentra el perfecto para tu viaje</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h2 class="fw-bold text-dark mb-0">
+                                    <i class="bi bi-car-front-fill text-primary me-2"></i>Els Meus Vehicles
+                                </h2>
+                                <p class="text-muted mb-0">Gestiona els teus vehicles registrats</p>
+                            </div>
+                            <button class="btn btn-primary rounded-3" data-bs-toggle="modal" data-bs-target="#vehicleModal">
+                                <i class="bi bi-plus-lg me-2"></i>Afegir Vehicle
+                            </button>
                         </div>
                     </div>
                 </div>
 
-                <!-- Mostrar mensajes -->
+                <!-- Mensajes -->
                 <?php if (isset($message) && !empty($message)): ?>
                     <div class="alert alert-<?php echo $messageType; ?> alert-dismissible fade show rounded-3" role="alert">
                         <i class="bi bi-<?php echo $messageType === 'success' ? 'check-circle' : 'exclamation-triangle'; ?> me-2"></i>
-                        <?php echo $message; ?>
+                        <?php echo htmlspecialchars($message); ?>
                         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
                     </div>
                 <?php endif; ?>
 
-                <!-- Filtros Card -->
-                <div class="card border-0 shadow-lg rounded-4 mb-4">
-                    <div class="card-header bg-primary text-white rounded-top-4">
-                        <h5 class="mb-0"><i class="bi bi-funnel me-2"></i>Filtros de Búsqueda</h5>
-                    </div>
-                    <div class="card-body p-4">
-                        <form method="GET" class="row g-3">
-                            <div class="col-md-3">
-                                <label for="tipo" class="form-label fw-bold">Tipo de Vehículo</label>
-                                <select class="form-select rounded-3" id="tipo" name="tipo">
-                                    <option value="">Todos los tipos</option>
-                                    <?php foreach ($tiposVehicles as $key => $nombre): ?>
-                                        <option value="<?php echo $key; ?>" <?php echo ($filtros['tipo'] === $key) ? 'selected' : ''; ?>>
-                                            <?php echo $nombre; ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="precio_max" class="form-label fw-bold">Precio máximo/día</label>
-                                <select class="form-select rounded-3" id="precio_max" name="precio_max">
-                                    <option value="">Sin límite</option>
-                                    <option value="100" <?php echo ($filtros['precio_max'] === '100') ? 'selected' : ''; ?>>Hasta €100</option>
-                                    <option value="150" <?php echo ($filtros['precio_max'] === '150') ? 'selected' : ''; ?>>Hasta €150</option>
-                                    <option value="200" <?php echo ($filtros['precio_max'] === '200') ? 'selected' : ''; ?>>Hasta €200</option>
-                                    <option value="300" <?php echo ($filtros['precio_max'] === '300') ? 'selected' : ''; ?>>Hasta €300</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label for="disponible" class="form-label fw-bold">Disponibilidad</label>
-                                <select class="form-select rounded-3" id="disponible" name="disponible">
-                                    <option value="si" <?php echo ($filtros['disponible'] === 'si') ? 'selected' : ''; ?>>Solo disponibles</option>
-                                    <option value="todos" <?php echo ($filtros['disponible'] === 'todos') ? 'selected' : ''; ?>>Todos</option>
-                                </select>
-                            </div>
-                            <div class="col-md-3">
-                                <label class="form-label">&nbsp;</label>
-                                <div class="d-flex gap-2">
-                                    <button type="submit" class="btn btn-primary rounded-3">
-                                        <i class="bi bi-search me-2"></i>Buscar
-                                    </button>
-                                    <a href="?" class="btn btn-outline-secondary rounded-3">
-                                        <i class="bi bi-x-lg me-2"></i>Limpiar
-                                    </a>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-
                 <!-- Lista de vehículos -->
-                <div class="row">
-                    <?php if (!empty($vehicles)): ?>
-                        <?php foreach ($vehicles as $vehicle): ?>
-                            <div class="col-lg-4 col-md-6 mb-4">
-                                <div class="card border-0 shadow-lg rounded-4 h-100 <?php echo !$vehicle['disponible'] ? 'opacity-75' : ''; ?>" style="transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(0,0,0,0.1)'">
-                                    <div class="position-relative">
-                                        <img src="<?php echo $vehicle['imagen']; ?>" 
-                                             class="card-img-top rounded-top-4" 
-                                             style="height: 200px; object-fit: cover;"
-                                             alt="<?php echo htmlspecialchars($vehicle['nombre']); ?>">
-                                        <?php if (!$vehicle['disponible']): ?>
-                                            <div class="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center rounded-top-4" style="background: rgba(0,0,0,0.6);">
-                                                <span class="badge bg-danger fs-6 px-4 py-2">NO DISPONIBLE</span>
-                                            </div>
-                                        <?php endif; ?>
+                <div class="row g-4">
+                    <?php if (!empty($userVehicles)): ?>
+                        <?php foreach ($userVehicles as $vehicle): ?>
+                            <div class="col-md-6 col-lg-4">
+                                <div class="card border-0 shadow-lg rounded-4 h-100">
+                                    <!-- Imagen del vehículo -->
+                                    <?php if (!empty($vehicle['images'])): ?>
+                                        <img src="<?php echo htmlspecialchars($vehicle['images'][0]); ?>" 
+                                             class="card-img-top rounded-top-4"
+                                             alt="<?php echo htmlspecialchars($vehicle['marca_model']); ?>"
+                                             style="height: 200px; object-fit: cover;">
+                                    <?php else: ?>
+                                        <div class="bg-light rounded-top-4 d-flex align-items-center justify-content-center" style="height: 200px;">
+                                            <i class="bi bi-car-front display-1 text-muted"></i>
+                                        </div>
+                                    <?php endif; ?>
+
+                                    <!-- Botón para subir imagen -->
+                                    <div class="position-absolute top-0 end-0 p-3">
+                                        <button class="btn btn-light btn-sm rounded-circle shadow" 
+                                                onclick="openImageUpload(<?php echo $vehicle['id']; ?>)">
+                                            <i class="bi bi-camera"></i>
+                                        </button>
                                     </div>
-                                    
+
                                     <div class="card-body p-4">
-                                        <h5 class="card-title fw-bold"><?php echo htmlspecialchars($vehicle['nombre']); ?></h5>
-                                        <p class="text-muted mb-2">
-                                            <small><i class="bi bi-tag me-1"></i><?php echo $vehicle['marca']; ?> • <?php echo $vehicle['año']; ?> • <?php echo $vehicle['combustible']; ?></small>
+                                        <h5 class="card-title fw-bold mb-2">
+                                            <?php echo htmlspecialchars($vehicle['marca_model']); ?>
+                                        </h5>
+                                        
+                                        <!-- Etiqueta de tipo -->
+                                        <span class="badge bg-primary mb-3">
+                                            <?php echo htmlspecialchars($vehicle['tipus']); ?>
+                                        </span>
+
+                                        <!-- Detalles en grid -->
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-6">
+                                                <div class="bg-light rounded p-2 text-center">
+                                                    <small class="text-muted d-block">Places</small>
+                                                    <strong><?php echo $vehicle['places']; ?></strong>
+                                                </div>
+                                            </div>
+                                            <div class="col-6">
+                                                <div class="bg-light rounded p-2 text-center">
+                                                    <small class="text-muted d-block">Transmissió</small>
+                                                    <strong><?php echo $vehicle['transmissio']; ?></strong>
+                                                </div>
+                                            </div>
+                                            <div class="col-12">
+                                                <div class="bg-light rounded p-2 text-center">
+                                                    <small class="text-muted d-block">Preu per Hora</small>
+                                                    <strong class="text-primary"><?php echo number_format($vehicle['preu_hora'], 2); ?>€</strong>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <!-- Descripción -->
+                                        <p class="text-muted small mb-3">
+                                            <?php echo htmlspecialchars($vehicle['descripcio']); ?>
                                         </p>
-                                        <p class="card-text text-truncate"><?php echo htmlspecialchars($vehicle['descripcion']); ?></p>
-                                        
-                                        <!-- Características del vehículo -->
-                                        <div class="mb-3">
-                                            <div class="row g-2 mb-2">
-                                                <div class="col-6">
-                                                    <span class="badge bg-light text-dark w-100 py-2 rounded-3">
-                                                        <i class="bi bi-people me-1"></i><?php echo $vehicle['pasajeros']; ?> pasajeros
-                                                    </span>
-                                                </div>
-                                                <div class="col-6">
-                                                    <span class="badge bg-light text-dark w-100 py-2 rounded-3">
-                                                        <i class="bi bi-door-open me-1"></i><?php echo $vehicle['puertas']; ?> puertas
-                                                    </span>
-                                                </div>
-                                                <div class="col-12">
-                                                    <span class="badge bg-light text-dark w-100 py-2 rounded-3">
-                                                        <i class="bi bi-gear me-1"></i><?php echo $vehicle['transmision']; ?>
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            
-                                            <!-- Extras -->
-                                            <div class="d-flex flex-wrap gap-1">
-                                                <?php if ($vehicle['aire_acondicionado']): ?>
-                                                    <span class="badge bg-info rounded-pill">
-                                                        <i class="bi bi-snow me-1"></i>A/C
-                                                    </span>
-                                                <?php endif; ?>
-                                                <?php if ($vehicle['gps']): ?>
-                                                    <span class="badge bg-success rounded-pill">
-                                                        <i class="bi bi-geo-alt me-1"></i>GPS
-                                                    </span>
-                                                <?php endif; ?>
-                                                <?php if ($vehicle['bluetooth']): ?>
-                                                    <span class="badge bg-primary rounded-pill">
-                                                        <i class="bi bi-bluetooth me-1"></i>Bluetooth
-                                                    </span>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-                                        
-                                        <!-- Precios -->
-                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <div>
-                                                <span class="text-muted">Precio disponible al reservar</span>
-                                            </div>
-                                            <span class="badge bg-<?php echo $vehicle['disponible'] ? 'success' : 'danger'; ?> rounded-pill px-3 py-2">
-                                                <?php echo $vehicle['disponible'] ? 'Disponible' : 'No disponible'; ?>
-                                            </span>
-                                        </div>
-                                        
-                                        <!-- Botones -->
-                                        <div class="d-grid gap-2">
-                                            <?php if ($vehicle['disponible']): ?>
-                                                <button class="btn btn-primary rounded-3" onclick="openReservaModal(<?php echo htmlspecialchars(json_encode($vehicle)); ?>)">
-                                                    <i class="bi bi-calendar-plus me-2"></i>Reservar Ahora
-                                                </button>
-                                                <a href="?action=details&id=<?php echo $vehicle['id']; ?>" class="btn btn-outline-primary rounded-3">
-                                                    <i class="bi bi-info-circle me-2"></i>Ver Detalles
-                                                </a>
-                                            <?php else: ?>
-                                                <button class="btn btn-secondary rounded-3" disabled>
-                                                    <i class="bi bi-x-circle me-2"></i>No Disponible
-                                                </button>
-                                            <?php endif; ?>
+
+                                        <!-- Botones de acción -->
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-primary flex-grow-1" 
+                                                    onclick="editVehicle(<?php echo htmlspecialchars(json_encode($vehicle)); ?>)">
+                                                <i class="bi bi-pencil me-2"></i>Editar
+                                            </button>
+                                            <button class="btn btn-outline-danger" 
+                                                    onclick="deleteVehicle(<?php echo $vehicle['id']; ?>, '<?php echo htmlspecialchars($vehicle['marca_model']); ?>')">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -201,11 +141,10 @@
                             <div class="card border-0 shadow-lg rounded-4">
                                 <div class="card-body text-center py-5">
                                     <i class="bi bi-car-front text-muted display-1 mb-3"></i>
-                                    <h4 class="text-muted fw-bold">No se encontraron vehículos</h4>
-                                    <p class="text-muted">Intenta ajustar los filtros de búsqueda</p>
-                                    <a href="?" class="btn btn-primary rounded-3">
-                                        <i class="bi bi-arrow-clockwise me-2"></i>Ver Todos los Vehículos
-                                    </a>
+                                    <h4 class="text-muted mb-3">Encara no tens cap vehicle registrat</h4>
+                                    <button class="btn btn-primary rounded-3" data-bs-toggle="modal" data-bs-target="#vehicleModal">
+                                        <i class="bi bi-plus-lg me-2"></i>Afegir el Meu Primer Vehicle
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -215,67 +154,62 @@
         </div>
     </div>
 
-    <!-- Modal de Reserva -->
-    <div class="modal fade" id="reservaModal" tabindex="-1">
+    <!-- Modal de Vehículo (Crear/Editar) -->
+    <div class="modal fade" id="vehicleModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content rounded-4">
-                <div class="modal-header bg-primary text-white rounded-top-4">
+                <div class="modal-header">
                     <h5 class="modal-title">
-                        <i class="bi bi-calendar-plus me-2"></i>Reservar Vehículo: <span id="modal-vehicle-name"></span>
+                        <i class="bi bi-car-front me-2"></i><span id="modalTitle">Nou Vehicle</span>
                     </h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form method="POST">
-                    <div class="modal-body p-4">
-                        <input type="hidden" name="action" value="reservar">
-                        <input type="hidden" name="vehicle_id" id="modal-vehicle-id">
-                        
-                        <div class="row mb-3">
+                <form id="vehicleForm" method="POST" action="../../controllers/VehicleController.php">
+                    <div class="modal-body">
+                        <input type="hidden" name="action" value="save">
+                        <input type="hidden" name="id" id="vehicleId">
+
+                        <div class="row g-3">
                             <div class="col-md-6">
-                                <label for="fecha_inicio" class="form-label fw-bold">Fecha de Inicio</label>
-                                <input type="datetime-local" class="form-control rounded-3" id="fecha_inicio" name="fecha_inicio" required>
+                                <label class="form-label">Marca i Model</label>
+                                <input type="text" class="form-control" name="marca_model" id="marca_model" required>
                             </div>
                             <div class="col-md-6">
-                                <label for="fecha_fin" class="form-label fw-bold">Fecha de Fin</label>
-                                <input type="datetime-local" class="form-control rounded-3" id="fecha_fin" name="fecha_fin" required>
-                            </div>
-                        </div>
-                        
-                        <div class="row mb-3">
-                            <div class="col-md-6">
-                                <label for="tipo_renta" class="form-label fw-bold">Tipo de Renta</label>
-                                <select class="form-select rounded-3" id="tipo_renta" name="tipo_renta" onchange="updatePricing()" required>
-                                    <option value="dias">Por Días</option>
-                                    <option value="horas">Por Horas</option>
+                                <label class="form-label">Tipus</label>
+                                <select class="form-select" name="tipus" id="tipus" required>
+                                    <option value="">Selecciona un tipus...</option>
+                                    <?php foreach ($tiposVehiculos as $key => $nombre): ?>
+                                        <option value="<?php echo $key; ?>"><?php echo $nombre; ?></option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
-                            <div class="col-md-6">
-                                <label for="cantidad" class="form-label fw-bold">Cantidad</label>
-                                <input type="number" class="form-control rounded-3" id="cantidad" name="cantidad" min="1" value="1" onchange="updatePricing()" required>
+                            <div class="col-md-4">
+                                <label class="form-label">Places</label>
+                                <input type="number" class="form-control" name="places" id="places" min="1" max="9" required>
                             </div>
-                        </div>
-                        
-                        <!-- Resumen de precio -->
-                        <div class="card bg-light border-0 rounded-3">
-                            <div class="card-body">
-                                <h6 class="card-title fw-bold">Resumen de Reserva</h6>
-                                <div id="pricing-summary">
-                                    <p class="mb-1">Precio por <span id="precio-tipo">día</span>: <i class="bi bi-coin"></i> <span id="precio-unitario-dc">0</span> DC</p>
-                                    <p class="mb-2 text-muted small">(<span id="precio-unitario-euros">€0</span>)</p>
-                                    <p class="mb-1">Cantidad: <span id="cantidad-display">1</span> <span id="cantidad-tipo">día(s)</span></p>
-                                    <hr>
-                                    <h6 class="mb-0 fw-bold text-primary">
-                                        Total: <i class="bi bi-coin"></i> <span id="precio-total-dc">0</span> DC
-                                    </h6>
-                                    <small class="text-muted">(<span id="precio-total-euros">€0</span>)</small>
-                                </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Transmissió</label>
+                                <select class="form-select" name="transmissio" id="transmissio" required>
+                                    <option value="">Selecciona...</option>
+                                    <option value="Manual">Manual</option>
+                                    <option value="Automàtic">Automàtic</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label">Preu per Hora (€)</label>
+                                <input type="number" class="form-control" name="preu_hora" id="preu_hora" 
+                                       step="0.01" min="0" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Descripció</label>
+                                <textarea class="form-control" name="descripcio" id="descripcio" rows="3"></textarea>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer p-4">
-                        <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary rounded-3">
-                            <i class="bi bi-check-lg me-2"></i>Confirmar Reserva
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel·lar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-save me-2"></i>Guardar Vehicle
                         </button>
                     </div>
                 </form>
@@ -283,73 +217,111 @@
         </div>
     </div>
 
+    <!-- Modal para Subir Imágenes -->
+    <div class="modal fade" id="imageModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-camera me-2"></i>Pujar Imatges
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="imageForm" method="POST" enctype="multipart/form-data" action="../../controllers/VehicleController.php">
+                    <div class="modal-body">
+                        <input type="hidden" name="action" value="upload_image">
+                        <input type="hidden" name="vehicle_id" id="imageVehicleId">
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Selecciona les imatges</label>
+                            <input type="file" class="form-control" name="images[]" multiple accept="image/*" required>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            Pots seleccionar múltiples imatges. Formats acceptats: JPG, PNG.
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel·lar</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload me-2"></i>Pujar Imatges
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmación de Eliminación -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content rounded-4">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-exclamation-triangle text-danger me-2"></i>Confirmar Eliminació
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Estàs segur que vols eliminar el vehicle <strong id="deleteVehicleName"></strong>?</p>
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        Aquesta acció no es pot desfer.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel·lar</button>
+                    <form id="deleteForm" method="POST" class="d-inline" action="../../controllers/VehicleController.php">
+                        <input type="hidden" name="action" value="delete">
+                        <input type="hidden" name="id" id="deleteVehicleId">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-trash me-2"></i>Eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle & Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        let currentVehicle = null;
-
-        function openReservaModal(vehicle) {
-            currentVehicle = vehicle;
+        // Editar vehículo
+        function editVehicle(vehicle) {
+            document.getElementById('modalTitle').textContent = 'Editar Vehicle';
+            document.getElementById('vehicleId').value = vehicle.id;
+            document.getElementById('marca_model').value = vehicle.marca_model;
+            document.getElementById('tipus').value = vehicle.tipus;
+            document.getElementById('places').value = vehicle.places;
+            document.getElementById('transmissio').value = vehicle.transmissio;
+            document.getElementById('preu_hora').value = vehicle.preu_hora;
+            document.getElementById('descripcio').value = vehicle.descripcio;
             
-            document.getElementById('modal-vehicle-name').textContent = vehicle.nombre;
-            document.getElementById('modal-vehicle-id').value = vehicle.id;
-            
-            // Establecer fecha mínima como ahora
-            const now = new Date();
-            const minDateTime = now.toISOString().slice(0, 16);
-            document.getElementById('fecha_inicio').min = minDateTime;
-            document.getElementById('fecha_fin').min = minDateTime;
-            
-            updatePricing();
-            
-            new bootstrap.Modal(document.getElementById('reservaModal')).show();
+            new bootstrap.Modal(document.getElementById('vehicleModal')).show();
         }
 
-        function updatePricing() {
-            if (!currentVehicle) return;
-            
-            const tipoRenta = document.getElementById('tipo_renta').value;
-            const cantidad = parseInt(document.getElementById('cantidad').value) || 1;
-            
-            // Precios fijos por defecto (ya que los vehículos no tienen precios definidos)
-            const precioUnitarioEuros = tipoRenta === 'dias' ? 50 : 8; // €50/día o €8/hora
-            const totalEuros = precioUnitarioEuros * cantidad;
-            
-            // Convertir a DriveCoins (1 Euro = 10 DriveCoins)
-            const precioUnitarioDC = precioUnitarioEuros * 10;
-            const totalDC = totalEuros * 10;
-            
-            document.getElementById('precio-tipo').textContent = tipoRenta === 'dias' ? 'día' : 'hora';
-            document.getElementById('precio-unitario-dc').textContent = precioUnitarioDC.toFixed(0);
-            document.getElementById('precio-unitario-euros').textContent = '€' + precioUnitarioEuros.toFixed(2);
-            document.getElementById('cantidad-display').textContent = cantidad;
-            document.getElementById('cantidad-tipo').textContent = tipoRenta === 'dias' ? 'día(s)' : 'hora(s)';
-            document.getElementById('precio-total-dc').textContent = totalDC.toFixed(0);
-            document.getElementById('precio-total-euros').textContent = '€' + totalEuros.toFixed(2);
+        // Eliminar vehículo
+        function deleteVehicle(id, name) {
+            document.getElementById('deleteVehicleId').value = id;
+            document.getElementById('deleteVehicleName').textContent = name;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
         }
 
-        // Auto-calcular cantidad basada en fechas
-        document.getElementById('fecha_inicio').addEventListener('change', calculateDuration);
-        document.getElementById('fecha_fin').addEventListener('change', calculateDuration);
-
-        function calculateDuration() {
-            const inicio = new Date(document.getElementById('fecha_inicio').value);
-            const fin = new Date(document.getElementById('fecha_fin').value);
-            
-            if (inicio && fin && fin > inicio) {
-                const tipoRenta = document.getElementById('tipo_renta').value;
-                const diffMs = fin - inicio;
-                
-                let cantidad;
-                if (tipoRenta === 'dias') {
-                    cantidad = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-                } else {
-                    cantidad = Math.ceil(diffMs / (1000 * 60 * 60));
-                }
-                
-                document.getElementById('cantidad').value = cantidad;
-                updatePricing();
-            }
+        // Subir imágenes
+        function openImageUpload(vehicleId) {
+            document.getElementById('imageVehicleId').value = vehicleId;
+            new bootstrap.Modal(document.getElementById('imageModal')).show();
         }
+
+        // Reset form al abrir modal de nuevo vehículo
+        document.getElementById('vehicleModal').addEventListener('show.bs.modal', function (event) {
+            if (!event.relatedTarget) return; // Si se abre para editar, no resetear
+            
+            document.getElementById('modalTitle').textContent = 'Nou Vehicle';
+            document.getElementById('vehicleForm').reset();
+            document.getElementById('vehicleId').value = '';
+        });
     </script>
 </body>
 </html>

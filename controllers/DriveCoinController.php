@@ -233,6 +233,38 @@ class DriveCoinController {
         
         return $stats;
     }
+
+    /**
+     * Render page to buy DriveCoins (prepara variables y carga la vista)
+     */
+    public function renderPage() {
+        session_start();
+
+        // Si no hay sesión, redirigir al login de la app
+        if (!isset($_SESSION['user_id'])) {
+            header('Location: ../app/Views/horaris/login.php');
+            exit;
+        }
+
+        // Preparar datos para la vista
+        try {
+            $packages = $this->driveCoinModel->getAvailablePackages();
+        } catch (Throwable $e) {
+            $packages = [];
+            error_log('DriveCoinController::renderPage packages error: ' . $e->getMessage());
+        }
+
+        try {
+            $currentBalance = $this->driveCoinModel->getBalance($_SESSION['user_id']);
+        } catch (Throwable $e) {
+            $currentBalance = 0;
+            error_log('DriveCoinController::renderPage balance error: ' . $e->getMessage());
+        }
+
+        // Incluir la vista (ruta relativa al directorio controllers)
+        include __DIR__ . '/../views/drivecoins/comprar-drivecoins.php';
+        exit;
+    }
     
     /**
      * Enviar respuesta JSON

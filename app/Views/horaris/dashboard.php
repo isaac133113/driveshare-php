@@ -1,16 +1,18 @@
 <?php
 session_start();
 
-// Cargar clases necesarias
-require_once '../../config/Database.php';
-require_once '../../models/UserModel.php';
-require_once '../../models/DriveCoinModel.php';
-
-// Verificar si el usuario está logueado
+// Nota: mover includes y lógica a los controladores.
+// Esta vista debe recibir variables preparadas por el controlador (ej. $_SESSION y $driveCoinsBalance, $userPreferences, $message, $messageType).
+// Proveer valores por defecto seguros para evitar warnings si se accede directamente.
 if (!isset($_SESSION['user_id'])) {
     header('Location: login.php');
     exit;
 }
+
+$message = $message ?? '';
+$messageType = $messageType ?? '';
+$driveCoinsBalance = $driveCoinsBalance ?? 0;
+$userPreferences = $userPreferences ?? ['email_notifications' => 1, 'sms_notifications' => 0, 'default_vehicle' => '', 'saldo' => 0.00];
 
 // Logout functionality
 if (isset($_GET['logout'])) {

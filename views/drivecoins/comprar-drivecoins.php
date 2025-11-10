@@ -57,20 +57,35 @@
 <body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
     <?php
     session_start();
-    
-    // Verificar si el usuario está logueado
+
+    // Nota: la lógica (DB, modelos, etc.) se debe ejecutar desde el controlador correspondiente.
+    // Esta vista asume que el controlador ha preparado las variables: $packages y $currentBalance.
+    // Para evitar avisos si se ejecuta directamente, proporcionamos valores por defecto seguros.
     if (!isset($_SESSION['user_id'])) {
         header('Location: views/horaris/login.php');
         exit;
     }
-    
-    require_once 'config/Database.php';
-    require_once 'models/DriveCoinModel.php';
-    require_once 'controllers/DriveCoinController.php';
-    
-    $driveCoinModel = new DriveCoinModel();
-    $currentBalance = $driveCoinModel->getBalance($_SESSION['user_id']);
-    $packages = $driveCoinModel->getAvailablePackages();
+
+    // Fallbacks seguros (el controlador debe sobrescribirlos)
+    $packages = $packages ?? [];
+    $currentBalance = $currentBalance ?? 0;
+
+    if (empty($packages)) {
+        // Intentar cargar modelo como fallback (ruta relativa desde la vista)
+        require_once __DIR__ . '/../../config/Database.php';
+        require_once __DIR__ . '/../../models/DriveCoinModel.php';
+        try {
+            $driveCoinModel = new DriveCoinModel();
+            $packages = $driveCoinModel->getAvailablePackages();
+            if (isset($_SESSION['user_id'])) {
+                $currentBalance = $driveCoinModel->getBalance($_SESSION['user_id']);
+            }
+        } catch (Throwable $e) {
+            error_log('DriveCoinModel error (view fallback): ' . $e->getMessage());
+            $packages = $packages ?? [];
+            $currentBalance = $currentBalance ?? 0;
+        }
+    }
     ?>
 
     <div class="container py-5">
@@ -203,7 +218,7 @@
 
         <!-- Botón volver -->
         <div class="text-center mt-4">
-            <a href="views/horaris/dashboard.php" class="btn btn-outline-light rounded-3">
+            <a href="/controllers/DashboardController.php?action=index" class="btn btn-outline-light rounded-3">
                 <i class="bi bi-arrow-left me-2"></i>Volver al Dashboard
             </a>
         </div>
