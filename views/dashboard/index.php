@@ -111,6 +111,15 @@ $userPreferences = $userPreferences ?? [
                                     <small class="text-muted">Saldo de la teva compte</small>
                                 </div>
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="border rounded-3 p-3 bg-warning bg-opacity-25">
+                                    <small class="text-muted"><i class="bi bi-coin me-1"></i>DriveCoins</small>
+                                    <div class="fw-bold text-warning">
+                                        <span id="driveCoinsBalance"><?php echo number_format($driveCoinsBalance, 2, ',', '.'); ?></span> DC
+                                    </div>
+                                    <small class="text-muted">Monedes del sistema</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -349,13 +358,23 @@ $userPreferences = $userPreferences ?? [
                                                         <td><?php echo number_format($ruta['precio_euros'], 2); ?>€</td>
                                                         <td>
                                                             <?php
-                                                            $badgeClass = match($ruta['estado']) {
-                                                                1 => 'bg-warning',   // Pendent
-                                                                2 => 'bg-success',   // Confirmada
-                                                                3 => 'bg-info',      // Completada
-                                                                4 => 'bg-danger',    // Cancel·lada
-                                                                default => 'bg-secondary'
-                                                            };
+                                                            switch($ruta['estado']) {
+                                                                case 1:
+                                                                    $badgeClass = 'bg-warning';   // Pendent
+                                                                    break;
+                                                                case 2:
+                                                                    $badgeClass = 'bg-success';   // Confirmada
+                                                                    break;
+                                                                case 3:
+                                                                    $badgeClass = 'bg-info';      // Completada
+                                                                    break;
+                                                                case 4:
+                                                                    $badgeClass = 'bg-danger';    // Cancel·lada
+                                                                    break;
+                                                                default:
+                                                                    $badgeClass = 'bg-secondary';
+                                                                    break;
+                                                            }
                                                             $estados = (new HorariRutaModel())->getEstados();
                                                             ?>
                                                             <span class="badge <?php echo $badgeClass; ?>">

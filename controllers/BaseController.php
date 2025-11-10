@@ -16,6 +16,15 @@ abstract class BaseController {
     }
     
     protected function redirect($url) {
+        // Si la URL no empieza con http, usar la URL base configurada
+        if (!preg_match('/^https?:\/\//', $url)) {
+            // Si es una URL relativa, construir desde BASE_URL
+            if (strpos($url, 'index.php') === 0 || strpos($url, '?') === 0) {
+                $url = BASE_URL . '/index.php' . (strpos($url, '?') === 0 ? $url : '?' . substr($url, strlen('index.php')));
+            } elseif (strpos($url, '/') !== 0) {
+                $url = BASE_URL . '/' . $url;
+            }
+        }
         header('Location: ' . $url);
         exit;
     }
