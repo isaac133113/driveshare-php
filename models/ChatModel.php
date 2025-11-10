@@ -5,8 +5,7 @@ class ChatModel {
     private $conn;
     
     public function __construct() {
-        $database = new Database();
-        $this->conn = $database->getConnection();
+        $this->conn = Database::getInstance()->getConnection();
     }
     
     /**
@@ -19,9 +18,11 @@ class ChatModel {
                 SELECT id FROM conversations 
                 WHERE vehicle_id = ? AND renter_id = ? AND owner_id = ?
             ");
-            $stmt->execute([$vehicleId, $renterId, $ownerId]);
+            $stmt->bind_param("iii", $vehicleId, $renterId, $ownerId);
+            $stmt->execute();
+            $result = $stmt->get_result();
             
-            if ($conversation = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            if ($conversation = $result->fetch_assoc()) {
                 return $conversation['id'];
             }
             
@@ -30,11 +31,12 @@ class ChatModel {
                 INSERT INTO conversations (vehicle_id, renter_id, owner_id) 
                 VALUES (?, ?, ?)
             ");
-            $stmt->execute([$vehicleId, $renterId, $ownerId]);
+            $stmt->bind_param("iii", $vehicleId, $renterId, $ownerId);
+            $stmt->execute();
             
-            return $this->conn->lastInsertId();
+            return $this->conn->insert_id;
             
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             error_log("Error creating conversation: " . $e->getMessage());
             return false;
         }
@@ -49,21 +51,24 @@ class ChatModel {
                 INSERT INTO messages (conversation_id, sender_id, message) 
                 VALUES (?, ?, ?)
             ");
-            $result = $stmt->execute([$conversationId, $senderId, $message]);
+            $stmt->bind_param("iis", $conversationId, $senderId, $message);
+            $result = $stmt->execute();
             
             if ($result) {
                 // Actualizar timestamp de la conversación
-                $this->conn->prepare("
+                $updateStmt = $this->conn->prepare("
                     UPDATE conversations SET updated_at = CURRENT_TIMESTAMP 
                     WHERE id = ?
-                ")->execute([$conversationId]);
+                ");
+                $updateStmt->bind_param("i", $conversationId);
+                $updateStmt->execute();
                 
-                return $this->conn->lastInsertId();
+                return $this->conn->insert_id;
             }
             
             return false;
             
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             error_log("Error sending message: " . $e->getMessage());
             return false;
         }
