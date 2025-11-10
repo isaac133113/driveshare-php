@@ -113,13 +113,25 @@ class DashboardController extends BaseController {
         $recentActivity = $this->horariModel->getRecentActivity(5);
         $generalStats = $this->getGeneralStats();
 
-        // Saldo DriveCoins
-        $driveCoinsBalance = 0;
+        // Saldo en euros y DriveCoins desde la base de datos
+        $saldoEuros = 0.00;
+        $driveCoinsBalance = 0.00;
         try {
-            $driveModel = new DriveCoinModel();
-            $driveCoinsBalance = $driveModel->getBalance($_SESSION['user_id']);
+            $conn = Database::getInstance()->getConnection();
+            $stmt = $conn->prepare("SELECT saldo, drivecoins_balance FROM usuaris WHERE id = ?");
+            if ($stmt) {
+                $stmt->bind_param("i", $_SESSION['user_id']);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                if ($result && $result->num_rows > 0) {
+                    $balances = $result->fetch_assoc();
+                    $saldoEuros = (float)$balances['saldo'];
+                    $driveCoinsBalance = (float)$balances['drivecoins_balance'];
+                }
+            }
         } catch (Exception $e) {
-            $driveCoinsBalance = 0;
+            $saldoEuros = 0.00;
+            $driveCoinsBalance = 0.00;
         }
 
         // Preferencias del usuario
@@ -127,17 +139,20 @@ class DashboardController extends BaseController {
             'email_notifications' => 1,
             'sms_notifications' => 0,
             'default_vehicle' => '',
-            'saldo' => 0.00
+            'saldo' => $saldoEuros
         ];
         try {
             $conn = Database::getInstance()->getConnection();
-            $stmt = $conn->prepare("SELECT email_notifications, sms_notifications, default_vehicle, saldo FROM usuaris WHERE id = ?");
+            $stmt = $conn->prepare("SELECT email_notifications, sms_notifications, default_vehicle FROM usuaris WHERE id = ?");
             if ($stmt) {
                 $stmt->bind_param("i", $_SESSION['user_id']);
                 $stmt->execute();
                 $result = $stmt->get_result();
                 if ($result && $result->num_rows > 0) {
-                    $userPreferences = $result->fetch_assoc();
+                    $preferences = $result->fetch_assoc();
+                    $userPreferences['email_notifications'] = $preferences['email_notifications'];
+                    $userPreferences['sms_notifications'] = $preferences['sms_notifications'];
+                    $userPreferences['default_vehicle'] = $preferences['default_vehicle'];
                 }
             }
         } catch (Throwable $e) {
@@ -230,13 +245,6 @@ class DashboardController extends BaseController {
             
             // Simular alquiler (en una aplicación real, aquí se procesaría el pago)
             $rentalCode = 'DRS' . str_pad(mt_rand(1, 9999), 4, '0', STR_PAD_LEFT);
-            
-            // Registrar el alquiler en logs (opcional)
-            $this->userModel->logUserActivity(
-                $_SESSION['user_id'], 
-                "rental_$vehicleName", 
-                $_SERVER['REMOTE_ADDR']
-            );
             
             echo json_encode([
                 'success' => true,
@@ -475,6 +483,50 @@ class DashboardController extends BaseController {
         ];
     }
     
+    public function get_balance() {
+        $this->requireAuth();
+        header('Content-Type: application/json');
+        
+        try {
+            $conn = Database::getInstance()->getConnection();
+            $stmt = $conn->prepare("SELECT saldo, drivecoins_balance FROM usuaris WHERE id = ?");
+            if ($stmt) {
+                $stmt->bind_param("i", $_SESSION['user_id']);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                if ($result && $result->num_rows > 0) {
+                    $balances = $result->fetch_assoc();
+                    $saldoEuros = (float)$balances['saldo'];
+                    $driveCoinsBalance = (float)$balances['drivecoins_balance'];
+                    
+                    echo json_encode([
+                        'success' => true,
+                        'saldo_euros' => $saldoEuros,
+                        'drivecoins_balance' => $driveCoinsBalance,
+                        'euros_formatted' => number_format($saldoEuros, 2, ',', '.'),
+                        'drivecoins_formatted' => number_format($driveCoinsBalance, 0, ',', '.')
+                    ]);
+                } else {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'Usuario no encontrado'
+                    ]);
+                }
+            } else {
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'Error en la consulta'
+                ]);
+            }
+        } catch (Exception $e) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Error: ' . $e->getMessage()
+            ]);
+        }
+        exit;
+    }
+    
     public function logout() {
         session_destroy();
         $this->redirect('login.php');
@@ -499,6 +551,9 @@ if (basename($_SERVER['PHP_SELF']) === 'DashboardController.php') {
             break;
         case 'search':
             $controller->search();
+            break;
+        case 'get_balance':
+            $controller->get_balance();
             break;
         case 'logout':
             $controller->logout();

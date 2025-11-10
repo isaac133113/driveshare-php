@@ -173,19 +173,4 @@ class HorariController extends BaseController {
         $this->redirect('login.php');
     }
 }
-
-// Punto de entrada del controlador
-$controller = new HorariController();
-
-if (isset($_GET['action'])) {
-    switch ($_GET['action']) {
-        case 'search':
-            $controller->search();
-            break;
-        default:
-            $controller->index();
-    }
-} else {
-    $controller->index();
-}
 ?>

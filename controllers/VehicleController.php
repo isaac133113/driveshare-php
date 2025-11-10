@@ -41,8 +41,6 @@ class VehicleController extends BaseController {
                     break;
             }
         }
-        $message = '';
-        $messageType = '';
         
         // Manejar reserva
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'reservar') {
@@ -177,23 +175,43 @@ class VehicleController extends BaseController {
         // En una aplicación real, aquí guardarías la reserva en la base de datos
         // Por ahora, simularemos una reserva exitosa
         
-        // Log de la actividad
-        $this->userModel->logUserActivity(
+        // *** REGALO DE DRIVECOINS POR VIAJE COMPLETADO ***
+        // Calcular DriveCoins de regalo basado en la duración del viaje
+        $rewardDriveCoins = 0;
+        if ($tipoRenta === 'horas') {
+            $rewardDriveCoins = $cantidad * 5; // 5 DC por cada hora alquilada
+        } else {
+            $rewardDriveCoins = $cantidad * 25; // 25 DC por cada día alquilado
+        }
+        
+        // Agregar DriveCoins de recompensa
+        $rewardResult = $this->userModel->addDriveCoins(
             $_SESSION['user_id'], 
-            "reserva_vehicle_" . $vehicle['nombre'], 
-            $_SERVER['REMOTE_ADDR']
+            $rewardDriveCoins, 
+            "Recompensa per viatge - {$codigoReserva}", 
+            'bonus'
         );
+        
+        $finalBalance = $resultPago['new_balance'];
+        if ($rewardResult) {
+            $finalBalance += $rewardDriveCoins;
+        }
+        
+        
+        $rewardMessage = $rewardResult ? 
+            "<br>🎁 Recompensa: <i class='bi bi-coin'></i> +" . number_format($rewardDriveCoins, 0, ',', '.') . " DC per completar el viatge!" : "";
         
         return [
             'success' => true,
             'message' => "Reserva realitzada correctament! Codi de reserva: <strong>$codigoReserva</strong><br>
                          Vehicle: {$vehicle['nombre']}<br>
                          Període: $fechaInicio - $fechaFin<br>
-                         Cost: <i class='bi bi-coin'></i> " . number_format($totalDriveCoins, 0, ',', '.') . " DC<br>
-                         Nou saldo: <i class='bi bi-coin'></i> " . number_format($resultPago['new_balance'], 0, ',', '.') . " DC",
+                         Cost: <i class='bi bi-coin'></i> " . number_format($totalDriveCoins, 0, ',', '.') . " DC" . $rewardMessage . "<br>
+                         Saldo final: <i class='bi bi-coin'></i> " . number_format($finalBalance, 0, ',', '.') . " DC",
             'type' => 'success',
             'codigo_reserva' => $codigoReserva,
-            'new_balance' => $resultPago['new_balance']
+            'new_balance' => $finalBalance,
+            'reward_earned' => $rewardDriveCoins
         ];
     }
     

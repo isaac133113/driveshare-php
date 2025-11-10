@@ -41,6 +41,7 @@ class AuthController extends BaseController {
     }
   
     public function register() {
+        // Inicializar variables siempre al principio
         $errors = [];
         $success = false;
         $user = [];
@@ -91,7 +92,7 @@ class AuthController extends BaseController {
             }
         }
         
-        // Cargar la vista
+        // Cargar la vista con todas las variables definidas
         include __DIR__ . '/../views/auth/registre.php';
     }
         

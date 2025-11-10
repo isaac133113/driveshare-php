@@ -5,8 +5,7 @@ class ChatModel {
     private $conn;
     
     public function __construct() {
-        $database = new Database();
-        $this->conn = $database->getConnection();
+        $this->conn = Database::getInstance()->getConnection();
     }
     
     /**
@@ -19,9 +18,11 @@ class ChatModel {
                 SELECT id FROM conversations 
                 WHERE vehicle_id = ? AND renter_id = ? AND owner_id = ?
             ");
-            $stmt->execute([$vehicleId, $renterId, $ownerId]);
+            $stmt->bind_param("iii", $vehicleId, $renterId, $ownerId);
+            $stmt->execute();
+            $result = $stmt->get_result();
             
-            if ($conversation = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            if ($conversation = $result->fetch_assoc()) {
                 return $conversation['id'];
             }
             
@@ -30,11 +31,12 @@ class ChatModel {
                 INSERT INTO conversations (vehicle_id, renter_id, owner_id) 
                 VALUES (?, ?, ?)
             ");
-            $stmt->execute([$vehicleId, $renterId, $ownerId]);
+            $stmt->bind_param("iii", $vehicleId, $renterId, $ownerId);
+            $stmt->execute();
             
-            return $this->conn->lastInsertId();
+            return $this->conn->insert_id;
             
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             error_log("Error creating conversation: " . $e->getMessage());
             return false;
         }
@@ -49,21 +51,24 @@ class ChatModel {
                 INSERT INTO messages (conversation_id, sender_id, message) 
                 VALUES (?, ?, ?)
             ");
-            $result = $stmt->execute([$conversationId, $senderId, $message]);
+            $stmt->bind_param("iis", $conversationId, $senderId, $message);
+            $result = $stmt->execute();
             
             if ($result) {
                 // Actualizar timestamp de la conversación
-                $this->conn->prepare("
+                $updateStmt = $this->conn->prepare("
                     UPDATE conversations SET updated_at = CURRENT_TIMESTAMP 
                     WHERE id = ?
-                ")->execute([$conversationId]);
+                ");
+                $updateStmt->bind_param("i", $conversationId);
+                $updateStmt->execute();
                 
-                return $this->conn->lastInsertId();
+                return $this->conn->insert_id;
             }
             
             return false;
             
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             error_log("Error sending message: " . $e->getMessage());
             return false;
         }
@@ -75,18 +80,20 @@ class ChatModel {
     public function getMessages($conversationId, $limit = 50) {
         try {
             $stmt = $this->conn->prepare("
-                SELECT m.*, u.nom as sender_name, u.email as sender_email
+                SELECT m.*, u.nom as sender_name, u.correu as sender_email
                 FROM messages m
                 JOIN usuaris u ON m.sender_id = u.id
                 WHERE m.conversation_id = ?
                 ORDER BY m.created_at ASC
                 LIMIT ?
             ");
-            $stmt->execute([$conversationId, $limit]);
+            $stmt->bind_param("ii", $conversationId, $limit);
+            $stmt->execute();
+            $result = $stmt->get_result();
             
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result->fetch_all(MYSQLI_ASSOC);
             
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             error_log("Error getting messages: " . $e->getMessage());
             return [];
         }
@@ -100,8 +107,8 @@ class ChatModel {
             $stmt = $this->conn->prepare("
                 SELECT c.*, 
                        v.name as vehicle_name, v.brand, v.model,
-                       renter.nom as renter_name, renter.email as renter_email,
-                       owner.nom as owner_name, owner.email as owner_email,
+                       renter.nom as renter_name, renter.correu as renter_email,
+                       owner.nom as owner_name, owner.correu as owner_email,
                        (SELECT COUNT(*) FROM messages WHERE conversation_id = c.id AND sender_id != ? AND is_read = FALSE) as unread_count,
                        (SELECT message FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message,
                        (SELECT created_at FROM messages WHERE conversation_id = c.id ORDER BY created_at DESC LIMIT 1) as last_message_time
@@ -112,11 +119,13 @@ class ChatModel {
                 WHERE c.renter_id = ? OR c.owner_id = ?
                 ORDER BY c.updated_at DESC
             ");
-            $stmt->execute([$userId, $userId, $userId]);
+            $stmt->bind_param("iii", $userId, $userId, $userId);
+            $stmt->execute();
+            $result = $stmt->get_result();
             
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return $result->fetch_all(MYSQLI_ASSOC);
             
-        } catch (PDOException $e) {
+        } catch (Exception $e) {
             error_log("Error getting user conversations: " . $e->getMessage());
             return [];
         }

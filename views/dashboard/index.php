@@ -112,11 +112,12 @@ $userPreferences = $userPreferences ?? [
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <div class="border rounded-3 p-3 bg-info bg-opacity-25">
-                                    <small class="text-muted"><i class="bi bi-speedometer2 me-1"></i>Quilòmetres Recorreguts</small>
-                                    <div class="fw-bold text-info">
-                                        1,847 km
+                                <div class="border rounded-3 p-3 bg-primary bg-opacity-25">
+                                    <small class="text-muted"><i class="bi bi-currency-euro me-1"></i>Saldo en Euros</small>
+                                    <div class="fw-bold text-primary">
+                                        <span id="userEuros"><i class="bi bi-currency-euro"></i> <?php echo number_format($saldoEuros, 2, ',', '.'); ?> €</span>
                                     </div>
+                                    <small class="text-muted">Saldo real en cuenta</small>
                                 </div>
                             </div>
                         </div>
@@ -134,7 +135,7 @@ $userPreferences = $userPreferences ?? [
                         <div class="row g-3">
                             <div class="col-md-4">
                                 <div class="d-grid">
-                                    <a href="horaris.php" class="btn btn-outline-primary btn-lg rounded-3">
+                                    <a href="../../public/index.php?controller=horari&action=index" class="btn btn-outline-primary btn-lg rounded-3">
                                         <i class="bi bi-calendar-week me-2"></i>Gestionar Horaris
                                         <small class="d-block text-muted">Organitza les teves rutes</small>
                                     </a>
@@ -142,15 +143,7 @@ $userPreferences = $userPreferences ?? [
                             </div>
                             <div class="col-md-4">
                                 <div class="d-grid">
-                                    <a href="../../views/drivecoins/comprar-drivecoins.php" class="btn btn-outline-success btn-lg rounded-3">
-                                        <i class="bi bi-coin me-2"></i>Comprar DriveCoins
-                                        <small class="d-block text-muted">Moneda virtual DriveShare</small>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
-                                <div class="d-grid">
-                                    <a href="/public/index.php?controller=rutes&action=index" class="btn btn-outline-warning btn-lg rounded-3">
+                                    <a href="../../public/index.php?controller=rutes&action=index" class="btn btn-outline-warning btn-lg rounded-3">
                                         <i class="bi bi-map me-2"></i>Veure Rutes
                                         <small class="d-block text-muted">Rutes d'altres usuaris</small>
                                     </a>
@@ -162,7 +155,7 @@ $userPreferences = $userPreferences ?? [
                         <div class="row g-3 mt-2">
                             <div class="col-md-4">
                                 <div class="d-grid">
-                                    <a href="/public/index.php?controller=vehicle&action=index" class="btn btn-outline-primary btn-lg rounded-3">
+                                    <a href="../../public/index.php?controller=vehicle&action=index" class="btn btn-outline-primary btn-lg rounded-3">
                                         <i class="bi bi-car-front me-2"></i>Els Meus Vehicles
                                         <small class="d-block text-muted">Gestiona els teus vehicles</small>
                                     </a>
@@ -411,7 +404,8 @@ $userPreferences = $userPreferences ?? [
     <script>
         // Rent Vehicle Function
         function rentVehicle(vehicleName, pricePerHour) {
-            window.userDriveCoins = <?php echo $driveCoinsBalance; ?>; // Saldo real de DriveCoins (variable global)
+            window.userDriveCoins = <?php echo $driveCoinsBalance; ?>; // Saldo real de DriveCoins desde BD
+            window.userEuros = <?php echo $saldoEuros; ?>; // Saldo real de Euros desde BD
             const currentHour = new Date().getHours();
             
             if (currentHour >= 22 || currentHour < 6) {
@@ -460,24 +454,26 @@ $userPreferences = $userPreferences ?? [
         }
         
         // DriveCoins Interactive Functions
-        function buyDriveCoins() {
-            window.location.href = '../../comprar-drivecoins.php';
-        }
-        
-        // Update DriveCoins balance
-        function updateDriveCoinsBalance() {
-            fetch('../../controllers/DriveCoinController.php?action=get_balance')
+        // Update balance from database
+        function updateBalance() {
+            fetch('../../controllers/DashboardController.php?action=get_balance')
                 .then(response => response.json())
                 .then(data => {
                     if (data.success) {
+                        // Actualizar DriveCoins
                         document.getElementById('userDriveCoins').innerHTML = 
-                            `<i class="bi bi-coin"></i> ${data.formatted_balance}`;
+                            `<i class="bi bi-coin"></i> ${data.drivecoins_formatted}`;
                         
-                        // Update global variable for other functions
-                        window.userDriveCoins = data.balance;
+                        // Actualizar Euros  
+                        document.getElementById('userEuros').innerHTML = 
+                            `<i class="bi bi-currency-euro"></i> ${data.euros_formatted} €`;
+                        
+                        // Update global variables for other functions
+                        window.userDriveCoins = data.drivecoins_balance;
+                        window.userEuros = data.saldo_euros;
                     }
                 })
-                .catch(error => console.error('Error updating DriveCoins balance:', error));
+                .catch(error => console.error('Error updating balance:', error));
         }
         
         // Find Nearest Car
@@ -879,7 +875,7 @@ $userPreferences = $userPreferences ?? [
                 
                 // Actualizar saldo (simulado)
                 window.userDriveCoins -= totalCost;
-                updateDriveCoinsBalance();
+                updateBalance();
             }
         }
 

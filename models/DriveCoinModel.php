@@ -6,6 +6,7 @@ class DriveCoinModel {
 
     const TRANSACTION_RESERVATION = 'reservation';
     const TRANSACTION_BONUS = 'bonus';
+    const CONVERSION_RATE = 10; // 1 Euro = 10 DriveCoins
 
     public function __construct() {
         $this->conn = Database::getInstance()->getConnection();
@@ -87,5 +88,73 @@ class DriveCoinModel {
             $this->conn->rollback();
             return false;
         }
+    }
+
+    /**
+     * Convertir euros a DriveCoins
+     */
+    public static function eurosToDriveCoins($euros) {
+        return $euros * self::CONVERSION_RATE;
+    }
+
+    /**
+     * Convertir DriveCoins a euros
+     */
+    public static function driveCoinsToEuros($driveCoins) {
+        return $driveCoins / self::CONVERSION_RATE;
+    }
+
+    /**
+     * Gastar DriveCoins (alias para spendCoins)
+     */
+    public function spendDriveCoins($userId, $amount, $description = 'Reserva con DriveCoins', $referenceId = null) {
+        $balance = $this->getBalance($userId);
+        if ($balance < $amount) {
+            return [
+                'success' => false,
+                'message' => 'Saldo insuficient',
+                'new_balance' => $balance
+            ];
+        }
+
+        $this->conn->begin_transaction();
+        try {
+            $stmt = $this->conn->prepare("UPDATE usuaris SET drivecoins_balance = drivecoins_balance - ? WHERE id = ?");
+            $stmt->bind_param("di", $amount, $userId);
+            $stmt->execute();
+
+            $stmt2 = $this->conn->prepare("INSERT INTO drivecoins_transactions (user_id, transaction_type, amount, description, reference_id) VALUES (?, ?, ?, ?, ?)");
+            $type = self::TRANSACTION_RESERVATION;
+            $negativeAmount = -$amount; // Guardar como negativo para gastos
+            $stmt2->bind_param("isdss", $userId, $type, $negativeAmount, $description, $referenceId);
+            $stmt2->execute();
+
+            $this->conn->commit();
+            $newBalance = $this->getBalance($userId);
+            return [
+                'success' => true,
+                'message' => 'Pagament processat correctament',
+                'new_balance' => $newBalance
+            ];
+        } catch (Exception $e) {
+            $this->conn->rollback();
+            return [
+                'success' => false,
+                'message' => 'Error al processar el pagament: ' . $e->getMessage(),
+                'new_balance' => $balance
+            ];
+        }
+    }
+
+    /**
+     * Obtener historial de transacciones
+     */
+    public function getTransactionHistory($userId, $limit = 50) {
+        $stmt = $this->conn->prepare("SELECT * FROM drivecoins_transactions WHERE user_id = ? ORDER BY created_at DESC LIMIT ?");
+        $stmt->bind_param("ii", $userId, $limit);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        return $result->fetch_all(MYSQLI_ASSOC);
     }
 }
