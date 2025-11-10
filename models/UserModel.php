@@ -338,5 +338,19 @@ class UserModel {
         
         return $stmt->execute();
     }
+    
+    /**
+     * Registrar actividad del usuario
+     */
+    public function logUserActivity($userId, $activity, $details = '') {
+        try {
+            $stmt = $this->db->prepare("INSERT INTO user_activity (user_id, activity, details, created_at) VALUES (?, ?, ?, NOW())");
+            $stmt->bind_param("iss", $userId, $activity, $details);
+            return $stmt->execute();
+        } catch (Exception $e) {
+            // Si la tabla no existe, simplemente ignorar
+            return true;
+        }
+    }
 }
 ?>
