@@ -126,17 +126,17 @@ $userPreferences = $userPreferences ?? [
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <a href="/public/index.php?controller=horaris&action=index" class="btn btn-outline-primary btn-lg rounded-3">
-                                        <i class="bi bi-calendar-week me-2"></i>Gestionar Horaris
+                                    <a href="/public/index.php?controller=horaris&action=index" class="btn btn-outline-secondary btn-lg rounded-3">
+                                        <i class="bi bi-calendar-week me-2"></i>Gestionar Rutes
                                         <small class="d-block text-muted">Organitza les teves rutes</small>
                                     </a>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <a href="/public/index.php?controller=rutes&action=index" class="btn btn-outline-warning btn-lg rounded-3">
-                                        <i class="bi bi-map me-2"></i>Veure Rutes
-                                        <small class="d-block text-muted">Rutes d'altres usuaris</small>
+                                    <a href="/public/index.php?controller=vehicle&action=index" class="btn btn-outline-primary btn-lg rounded-3">
+                                        <i class="bi bi-car-front me-2"></i>Els Meus Vehicles
+                                        <small class="d-block text-muted">Gestiona els teus vehicles</small>
                                     </a>
                                 </div>
                             </div>
@@ -182,9 +182,9 @@ $userPreferences = $userPreferences ?? [
                             </div>
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <button class="btn btn-outline-secondary btn-lg rounded-3" onclick="viewReservations()">
-                                        <i class="bi bi-clipboard-check me-2"></i>Mis Reservas
-                                        <small class="d-block text-muted">Historial y reservas activas</small>
+                                    <button type="button" class="btn btn-outline-success btn-lg rounded-3" data-bs-toggle="modal" data-bs-target="#newRouteModal">
+                                        <i class="bi bi-map me-2"></i>Nova Ruta
+                                        <small class="d-block text-muted">Programa un nou viatge</small>
                                     </button>
                                 </div>
                             </div>
