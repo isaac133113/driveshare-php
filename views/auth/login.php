@@ -1,43 +1,3 @@
-<?php
-session_start();
-
-$error = '';
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = htmlspecialchars($_POST['email']);
-    $password = $_POST['password'];
-    
-    if (!empty($email) && !empty($password)) {
-        $mysql = new mysqli('localhost', 'root', '', 'aplicaciocompra');
-        
-        if ($mysql->connect_error) {
-            $error = 'Error de connexió: ' . $mysql->connect_error;
-        } else {
-            $sql = "SELECT id, nom, cognoms, correu, contrasenya FROM usuaris WHERE correu = ?";
-            $stmt = $mysql->prepare($sql);
-            $stmt->bind_param('s', $email);
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $user = $result->fetch_assoc();
-            
-            if ($user && password_verify($password, $user['contrasenya'])) {
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['user_nom'] = $user['nom'];
-                $_SESSION['user_cognoms'] = $user['cognoms'];
-                $_SESSION['user_email'] = $user['correu'];
-                header('Location: dashboard.php');
-                exit;
-            } else {
-                $error = 'Correu electrònic o contrasenya incorrectes';
-            }
-            $stmt->close();
-            $mysql->close();
-        }
-    } else {
-        $error = 'Si us plau, omple tots els camps';
-    }
-}
-?>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -68,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </div>
                         <?php endif; ?>
                         
-                        <form action="login.php" method="post">
+                        <form action="../../public/index.php?controller=auth&action=login" method="post">
                             <div class="mb-3">
                                 <label for="email" class="form-label fw-semibold">
                                     <i class="bi bi-envelope me-2"></i>Correu Electrònic

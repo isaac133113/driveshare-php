@@ -1,198 +1,24 @@
 <?php
-session_start();
-
-// Cargar clases necesarias
-require_once '../../config/Database.php';
-require_once '../../models/UserModel.php';
-require_once '../../models/DriveCoinModel.php';
-
-// Verificar si el usuario está logueado
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
+// No iniciar sesión si ya está activa (la inicia el controlador/config)
+if (session_status() !== PHP_SESSION_ACTIVE) {
+    session_start();
 }
+$userVehicles = $userVehicles ?? [];
+// La vista recibe las variables preparadas por el controlador:
+// $currentUser, $userStats, $horarisStats, $upcomingHoraris, $favoriteVehicles,
+// $favoriteRoutes, $vehicles, $recentActivity, $generalStats,
+// $message, $messageType, $driveCoinsBalance, $userPreferences
 
-// Logout functionality
-if (isset($_GET['logout'])) {
-    session_destroy();
-    header('Location: login.php');
-    exit;
-}
-
-// Variables para mensajes
-$message = '';
-$messageType = '';
-
-// Procesamiento de formularios de configuración
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $userModel = new UserModel();
-    
-    if (isset($_POST['action'])) {
-        switch ($_POST['action']) {
-            case 'update_profile':
-                $nom = trim($_POST['nom']);
-                $cognoms = trim($_POST['cognoms']);
-                $email = trim($_POST['email']);
-                
-                if (!empty($nom) && !empty($cognoms) && !empty($email)) {
-                    if (filter_var($email, FILTER_VALIDATE_EMAIL)) {
-                        // Verificar si el email ya existe (si es diferente al actual)
-                        if ($email !== $_SESSION['user_email'] && $userModel->emailExists($email)) {
-                            $message = 'Aquest email ja està registrat per un altre usuari.';
-                            $messageType = 'danger';
-                        } else {
-                            // Actualizar perfil en la base de datos
-                            $updateData = [
-                                'nom' => $nom,
-                                'cognoms' => $cognoms,
-                                'correu' => $email
-                            ];
-                            
-                            $updateResult = $userModel->updateProfile($_SESSION['user_id'], $updateData);
-                            
-                            if ($updateResult) {
-                                // Actualizar variables de sesión
-                                $_SESSION['user_nom'] = $nom;
-                                $_SESSION['user_cognoms'] = $cognoms;
-                                $_SESSION['user_email'] = $email;
-                                
-                                $message = 'Perfil actualitzat correctament!';
-                                $messageType = 'success';
-                            } else {
-                                $message = 'Error al actualitzar el perfil a la base de dades.';
-                                $messageType = 'danger';
-                            }
-                        }
-                    } else {
-                        $message = 'Email no vàlid.';
-                        $messageType = 'danger';
-                    }
-                } else {
-                    $message = 'Tots els camps són obligatoris.';
-                    $messageType = 'danger';
-                }
-                break;
-                
-            case 'change_password':
-                $currentPassword = $_POST['current_password'];
-                $newPassword = $_POST['new_password'];
-                $confirmPassword = $_POST['confirm_password'];
-                
-                if (!empty($currentPassword) && !empty($newPassword) && !empty($confirmPassword)) {
-                    if ($newPassword === $confirmPassword) {
-                        if (strlen($newPassword) >= 6) {
-                            // Verificar contraseña actual en la base de datos
-                            $result = $userModel->verifyCurrentPassword($_SESSION['user_id'], $currentPassword);
-                            
-                            if ($result) {
-                                // Actualizar la contraseña en la base de datos
-                                $updateResult = $userModel->updatePassword($_SESSION['user_id'], $newPassword);
-                                
-                                if ($updateResult) {
-                                    $message = 'Contrasenya canviada correctament!';
-                                    $messageType = 'success';
-                                } else {
-                                    $message = 'Error al actualitzar la contrasenya a la base de dades.';
-                                    $messageType = 'danger';
-                                }
-                            } else {
-                                $message = 'La contrasenya actual és incorrecta.';
-                                $messageType = 'danger';
-                            }
-                        } else {
-                            $message = 'La nova contrasenya ha de tenir mínim 6 caràcters.';
-                            $messageType = 'danger';
-                        }
-                    } else {
-                        $message = 'Les contrasenyes no coincideixen.';
-                        $messageType = 'danger';
-                    }
-                } else {
-                    $message = 'Tots els camps són obligatoris.';
-                    $messageType = 'danger';
-                }
-                break;
-                
-            case 'save_preferences':
-                $emailNotifications = isset($_POST['emailNotifications']) ? 1 : 0;
-                $smsNotifications = isset($_POST['smsNotifications']) ? 1 : 0;
-                $defaultVehicle = trim($_POST['defaultVehicle']);
-                
-                // Actualizar preferencias en la tabla usuaris
-                $conn = Database::getInstance()->getConnection();
-                
-                // Verificar si las columnas existen, si no, añadirlas
-                $columnsToAdd = [
-                    'email_notifications' => "ALTER TABLE usuaris ADD COLUMN email_notifications TINYINT(1) DEFAULT 1",
-                    'sms_notifications' => "ALTER TABLE usuaris ADD COLUMN sms_notifications TINYINT(1) DEFAULT 0",
-                    'default_vehicle' => "ALTER TABLE usuaris ADD COLUMN default_vehicle VARCHAR(50) DEFAULT ''",
-                    'saldo' => "ALTER TABLE usuaris ADD COLUMN saldo DECIMAL(10,2) DEFAULT 0.00"
-                ];
-                
-                foreach ($columnsToAdd as $columnName => $alterQuery) {
-                    // Verificar si la columna existe
-                    $checkColumn = $conn->query("SHOW COLUMNS FROM usuaris LIKE '$columnName'");
-                    if ($checkColumn->num_rows == 0) {
-                        // La columna no existe, añadirla
-                        $conn->query($alterQuery);
-                    }
-                }
-                
-                // Actualizar preferencias del usuario
-                $stmt = $conn->prepare("UPDATE usuaris SET email_notifications = ?, sms_notifications = ?, default_vehicle = ? WHERE id = ?");
-                $stmt->bind_param("iisi", $emailNotifications, $smsNotifications, $defaultVehicle, $_SESSION['user_id']);
-                
-                if ($stmt->execute()) {
-                    $message = 'Preferències guardades correctament!';
-                    $messageType = 'success';
-                } else {
-                    $message = 'Error al guardar les preferències.';
-                    $messageType = 'danger';
-                }
-                break;
-        }
-    }
-}
-
-// Cargar preferencias del usuario y DriveCoins
-$userPreferences = [
+// Valores por defecto para evitar warnings si el controlador no los hubiera inicializado
+$message = $message ?? '';
+$messageType = $messageType ?? '';
+$driveCoinsBalance = $driveCoinsBalance ?? 0;
+$userPreferences = $userPreferences ?? [
     'email_notifications' => 1,
     'sms_notifications' => 0,
     'default_vehicle' => '',
     'saldo' => 0.00
 ];
-
-// Obtener saldo de DriveCoins
-$driveCoinModel = new DriveCoinModel();
-$driveCoinsBalance = $driveCoinModel->getBalance($_SESSION['user_id']);
-
-$conn = Database::getInstance()->getConnection();
-
-// Verificar si las columnas de preferencias existen, si no, añadirlas
-$columnsToAdd = [
-    'email_notifications' => "ALTER TABLE usuaris ADD COLUMN email_notifications TINYINT(1) DEFAULT 1",
-    'sms_notifications' => "ALTER TABLE usuaris ADD COLUMN sms_notifications TINYINT(1) DEFAULT 0",
-    'default_vehicle' => "ALTER TABLE usuaris ADD COLUMN default_vehicle VARCHAR(50) DEFAULT ''",
-    'saldo' => "ALTER TABLE usuaris ADD COLUMN saldo DECIMAL(10,2) DEFAULT 0.00"
-];
-
-foreach ($columnsToAdd as $columnName => $alterQuery) {
-    // Verificar si la columna existe
-    $checkColumn = $conn->query("SHOW COLUMNS FROM usuaris LIKE '$columnName'");
-    if ($checkColumn->num_rows == 0) {
-        // La columna no existe, añadirla
-        $conn->query($alterQuery);
-    }
-}
-
-$stmt = $conn->prepare("SELECT email_notifications, sms_notifications, default_vehicle, saldo FROM usuaris WHERE id = ?");
-$stmt->bind_param("i", $_SESSION['user_id']);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($result->num_rows > 0) {
-    $userPreferences = $result->fetch_assoc();
-}
 ?>
 
 <!DOCTYPE html>
@@ -204,6 +30,7 @@ if ($result->num_rows > 0) {
     <!-- Bootstrap CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 <body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
     <div class="container py-5">
@@ -233,7 +60,7 @@ if ($result->num_rows > 0) {
                                 <button class="btn btn-outline-secondary rounded-3" data-bs-toggle="modal" data-bs-target="#configModal">
                                     <i class="bi bi-gear me-2"></i>Configuració
                                 </button>
-                                <a href="?logout=1" class="btn btn-outline-danger rounded-3">
+                                <a href="/public/index.php?controller=auth&action=logout" class="btn btn-outline-danger rounded-3">
                                     <i class="bi bi-box-arrow-right me-2"></i>Tancar Sessió
                                 </a>
                             </div>
@@ -315,7 +142,7 @@ if ($result->num_rows > 0) {
                             </div>
                             <div class="col-md-4">
                                 <div class="d-grid">
-                                    <a href="../../comprar-drivecoins.php" class="btn btn-outline-success btn-lg rounded-3">
+                                    <a href="../../views/drivecoins/comprar-drivecoins.php" class="btn btn-outline-success btn-lg rounded-3">
                                         <i class="bi bi-coin me-2"></i>Comprar DriveCoins
                                         <small class="d-block text-muted">Moneda virtual DriveShare</small>
                                     </a>
@@ -323,15 +150,43 @@ if ($result->num_rows > 0) {
                             </div>
                             <div class="col-md-4">
                                 <div class="d-grid">
-                                    <a href="../../ver-coches.php" class="btn btn-outline-info btn-lg rounded-3">
-                                        <i class="bi bi-car-front me-2"></i>Ver Coches
-                                        <small class="d-block text-muted">Explorar y reservar</small>
+                                    <a href="/public/index.php?controller=rutes&action=index" class="btn btn-outline-warning btn-lg rounded-3">
+                                        <i class="bi bi-map me-2"></i>Veure Rutes
+                                        <small class="d-block text-muted">Rutes d'altres usuaris</small>
                                     </a>
                                 </div>
                             </div>
                         </div>
                         
                         <!-- Segunda fila de botones -->
+                        <div class="row g-3 mt-2">
+                            <div class="col-md-4">
+                                <div class="d-grid">
+                                    <a href="/public/index.php?controller=vehicle&action=index" class="btn btn-outline-primary btn-lg rounded-3">
+                                        <i class="bi bi-car-front me-2"></i>Els Meus Vehicles
+                                        <small class="d-block text-muted">Gestiona els teus vehicles</small>
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-outline-success btn-lg rounded-3" data-bs-toggle="modal" data-bs-target="#newRouteModal">
+                                        <i class="bi bi-map me-2"></i>Nova Ruta
+                                        <small class="d-block text-muted">Programa un nou viatge</small>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="d-grid">
+                                    <button type="button" class="btn btn-outline-info btn-lg rounded-3" data-bs-toggle="modal" data-bs-target="#routesListModal">
+                                        <i class="bi bi-list-check me-2"></i>Les Meves Rutes
+                                        <small class="d-block text-muted">Historial i rutes actives</small>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Tercera fila de botones -->
                         <div class="row g-3 mt-2">
                             <div class="col-md-6">
                                 <div class="d-grid">
@@ -352,6 +207,199 @@ if ($result->num_rows > 0) {
                         </div>
                     </div>
                 </div>
+
+                <!-- Modal Nova Ruta -->
+                <div class="modal fade" id="newRouteModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-map me-2"></i>Nova Ruta
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <form method="POST" id="newRouteForm">
+                                    <input type="hidden" name="action" value="create_route">
+                                    <input type="hidden" id="origen_lat" name="origen_lat">
+                                    <input type="hidden" id="origen_lng" name="origen_lng">
+                                    <input type="hidden" id="desti_lat" name="desti_lat">
+                                    <input type="hidden" id="desti_lng" name="desti_lng">
+
+                                    <div class="row g-3">
+                                        <!-- Data i Hora -->
+                                        <div class="col-md-4">
+                                            <label class="form-label">Data</label>
+                                            <input type="date" class="form-control" name="data_ruta" required
+                                                min="<?php echo date('Y-m-d'); ?>">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Hora Inici</label>
+                                            <input type="time" class="form-control" name="hora_inici" required>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Hora Fi</label>
+                                            <input type="time" class="form-control" name="hora_fi" required>
+                                        </div>
+
+                                        <!-- Vehicle i Places -->
+                                        <div class="col-md-6">
+                                            <label class="form-label">Vehicle</label>
+
+                                            <select class="form-select" name="vehicle_id" required>
+                                                <option value="">Selecciona un vehicle...</option>
+                                                <?php foreach ($userVehicles as $vehicle): ?>
+                                                    <option value="<?php echo $vehicle['id']; ?>">
+                                                        <?php echo htmlspecialchars($vehicle['marca_model']); ?>
+                                                    </option>
+                                                <?php endforeach; ?>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Places Disponibles</label>
+                                            <input type="number" class="form-control" name="plazas_disponibles" 
+                                                min="1" max="8" value="4" required>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <label class="form-label">Preu (€)</label>
+                                            <input type="number" class="form-control" name="precio_euros" 
+                                                min="0" step="0.01" required>
+                                        </div>
+
+                                        <!-- Mapa i Ubicacions -->
+                                        <div class="col-12">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Origen</label>
+                                                    <div class="input-group mb-3">
+                                                        <input type="text" class="form-control" id="origenInput" 
+                                                            placeholder="Cerca una ubicació..." required>
+                                                        <button class="btn btn-outline-primary" type="button" 
+                                                                onclick="searchLocation('origen')">
+                                                            <i class="bi bi-search"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <label class="form-label">Destí</label>
+                                                    <div class="input-group mb-3">
+                                                        <input type="text" class="form-control" id="destiInput" 
+                                                            placeholder="Cerca una ubicació..." required>
+                                                        <button class="btn btn-outline-primary" type="button" 
+                                                                onclick="searchLocation('desti')">
+                                                            <i class="bi bi-search"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            
+                                            <div id="routeMap" style="height: 300px;" class="rounded-3 mb-3"></div>
+                                        </div>
+
+                                        <!-- Comentaris -->
+                                        <div class="col-12">
+                                            <label class="form-label">Comentaris</label>
+                                            <textarea class="form-control" name="comentaris" rows="3" 
+                                                    placeholder="Afegeix detalls addicionals sobre la ruta..."></textarea>
+                                        </div>
+                                    </div>
+
+                                    <div class="text-end mt-4">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel·lar</button>
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="bi bi-plus-circle me-2"></i>Crear Ruta
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Modal Les Meves Rutes -->
+                <div class="modal fade" id="routesListModal" tabindex="-1">
+                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-list-check me-2"></i>Les Meves Rutes
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <?php if (!empty($userRoutes)): ?>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Data</th>
+                                                    <th>Horari</th>
+                                                    <th>Ruta</th>
+                                                    <th>Vehicle</th>
+                                                    <th>Places</th>
+                                                    <th>Preu</th>
+                                                    <th>Estat</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($userRoutes as $ruta): ?>
+                                                    <tr>
+                                                        <td><?php echo date('d/m/Y', strtotime($ruta['data_ruta'])); ?></td>
+                                                        <td>
+                                                            <?php echo substr($ruta['hora_inici'], 0, 5); ?> - 
+                                                            <?php echo substr($ruta['hora_fi'], 0, 5); ?>
+                                                        </td>
+                                                        <td>
+                                                            <small class="d-block">
+                                                                <i class="bi bi-geo-alt text-success"></i> 
+                                                                <?php echo htmlspecialchars($ruta['origen']); ?>
+                                                            </small>
+                                                            <small class="d-block">
+                                                                <i class="bi bi-geo-alt-fill text-danger"></i> 
+                                                                <?php echo htmlspecialchars($ruta['desti']); ?>
+                                                            </small>
+                                                        </td>
+                                                        <td><?php echo htmlspecialchars($ruta['vehicle_name']); ?></td>
+                                                        <td class="text-center"><?php echo $ruta['plazas_disponibles']; ?></td>
+                                                        <td><?php echo number_format($ruta['precio_euros'], 2); ?>€</td>
+                                                        <td>
+                                                            <?php
+                                                            $badgeClass = match($ruta['estado']) {
+                                                                1 => 'bg-warning',   // Pendent
+                                                                2 => 'bg-success',   // Confirmada
+                                                                3 => 'bg-info',      // Completada
+                                                                4 => 'bg-danger',    // Cancel·lada
+                                                                default => 'bg-secondary'
+                                                            };
+                                                            $estados = (new HorariRutaModel())->getEstados();
+                                                            ?>
+                                                            <span class="badge <?php echo $badgeClass; ?>">
+                                                                <?php echo $estados[$ruta['estado']] ?? 'Desconegut'; ?>
+                                                            </span>
+                                                        </td>
+                                                        <td>
+                                                            <button type="button" class="btn btn-sm btn-outline-primary"
+                                                                    onclick="viewRouteDetails(<?php echo $ruta['id']; ?>)">
+                                                                <i class="bi bi-eye"></i>
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                <?php else: ?>
+                                    <div class="alert alert-info">
+                                        <i class="bi bi-info-circle me-2"></i>
+                                        Encara no tens cap ruta programada.
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
             </div>
         </div>
     </div>
@@ -361,27 +409,6 @@ if ($result->num_rows > 0) {
     
     <!-- DriveShare Interactive Functions -->
     <script>
-        // DriveCoins Interactive Functions
-        function buyDriveCoins() {
-            window.location.href = '../../comprar-drivecoins.php';
-        }
-        
-        // Update DriveCoins balance
-        function updateDriveCoinsBalance() {
-            fetch('../../controllers/DriveCoinController.php?action=get_balance')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('userDriveCoins').innerHTML = 
-                            `<i class="bi bi-coin"></i> ${data.formatted_balance}`;
-                        
-                        // Update global variable for other functions
-                        window.userDriveCoins = data.balance;
-                    }
-                })
-                .catch(error => console.error('Error updating DriveCoins balance:', error));
-        }
-        
         // Rent Vehicle Function
         function rentVehicle(vehicleName, pricePerHour) {
             window.userDriveCoins = <?php echo $driveCoinsBalance; ?>; // Saldo real de DriveCoins (variable global)
@@ -430,6 +457,27 @@ if ($result->num_rows > 0) {
         function showMyRentals() {
             const modal = new bootstrap.Modal(document.getElementById('rentalHistoryModal'));
             modal.show();
+        }
+        
+        // DriveCoins Interactive Functions
+        function buyDriveCoins() {
+            window.location.href = '../../comprar-drivecoins.php';
+        }
+        
+        // Update DriveCoins balance
+        function updateDriveCoinsBalance() {
+            fetch('../../controllers/DriveCoinController.php?action=get_balance')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        document.getElementById('userDriveCoins').innerHTML = 
+                            `<i class="bi bi-coin"></i> ${data.formatted_balance}`;
+                        
+                        // Update global variable for other functions
+                        window.userDriveCoins = data.balance;
+                    }
+                })
+                .catch(error => console.error('Error updating DriveCoins balance:', error));
         }
         
         // Find Nearest Car
@@ -849,6 +897,106 @@ if ($result->num_rows > 0) {
                     </div>
                 `);
             }, 300);
+        }
+    </script>
+
+    <!-- Scripts para el mapa de rutas -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        let routeMap;
+        let originMarker = null;
+        let destinationMarker = null;
+
+        // Inicializar mapa cuando se abre el modal
+        document.getElementById('newRouteModal').addEventListener('shown.bs.modal', function () {
+            if (!routeMap) {
+                const mollerussaCoords = [41.6231, 0.8825];
+                routeMap = L.map('routeMap').setView(mollerussaCoords, 13);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(routeMap);
+
+                // Forzar actualización del mapa
+                setTimeout(() => routeMap.invalidateSize(), 100);
+            }
+        });
+
+        // Buscar ubicación
+        function searchLocation(type) {
+            const input = type === 'origen' ? 
+                        document.getElementById('origenInput').value : 
+                        document.getElementById('destiInput').value;
+
+            // Simulación de geocoding con ubicaciones predefinidas
+            const locations = {
+                'barcelona': { lat: 41.3851, lng: 2.1734, name: 'Barcelona' },
+                'lleida': { lat: 41.6175, lng: 0.6200, name: 'Lleida' },
+                'tarrega': { lat: 41.6469, lng: 1.1394, name: 'Tàrrega' },
+                'mollerussa': { lat: 41.6231, lng: 0.8825, name: 'Mollerussa' },
+                'balaguer': { lat: 41.7889, lng: 0.8028, name: 'Balaguer' }
+            };
+
+            const location = locations[input.toLowerCase()];
+            if (location) {
+                setLocation(type, location.lat, location.lng, location.name);
+            } else {
+                showInfoModal('Ubicació no trobada', 
+                    'Prova amb: Barcelona, Lleida, Tàrrega, Mollerussa, Balaguer');
+            }
+        }
+
+        // Establecer ubicación en el mapa
+        function setLocation(type, lat, lng, name) {
+            const marker = L.marker([lat, lng], {
+                icon: L.divIcon({
+                    className: 'custom-div-icon',
+                    html: `<div style="background-color: ${type === 'origen' ? '#28a745' : '#dc3545'}; 
+                                    width: 24px; height: 24px; 
+                                    border-radius: 50%; 
+                                    display: flex; 
+                                    align-items: center; 
+                                    justify-content: center; 
+                                    color: white; 
+                                    font-size: 14px;">
+                        ${type === 'origen' ? 'A' : 'B'}
+                       </div>`,
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                })
+            });
+
+            if (type === 'origen') {
+                if (originMarker) routeMap.removeLayer(originMarker);
+                originMarker = marker;
+                document.getElementById('origen_lat').value = lat;
+                document.getElementById('origen_lng').value = lng;
+                document.getElementById('origenInput').value = name;
+            } else {
+                if (destinationMarker) routeMap.removeLayer(destinationMarker);
+                destinationMarker = marker;
+                document.getElementById('desti_lat').value = lat;
+                document.getElementById('desti_lng').value = lng;
+                document.getElementById('destiInput').value = name;
+            }
+
+            marker.addTo(routeMap);
+            
+            // Si tenemos ambos marcadores, ajustar la vista
+            if (originMarker && destinationMarker) {
+                const bounds = L.latLngBounds(
+                    [originMarker.getLatLng(), destinationMarker.getLatLng()]
+                );
+                routeMap.fitBounds(bounds, { padding: [50, 50] });
+            } else {
+                routeMap.setView([lat, lng], 13);
+            }
+        }
+
+        // Ver detalles de ruta
+        function viewRouteDetails(routeId) {
+            // Aquí puedes implementar la lógica para mostrar los detalles
+            showInfoModal('Detalls de la Ruta', 'Implementació pendent...');
         }
     </script>
 </body>

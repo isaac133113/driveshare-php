@@ -9,10 +9,6 @@ class AuthController extends BaseController {
     }
     
     public function login() {
-        if ($this->isAuthenticated()) {
-            $this->redirect('../../dashboard.php');
-        }
-        
         $error = '';
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -23,29 +19,25 @@ class AuthController extends BaseController {
                 $user = $this->userModel->authenticate($email, $password);
                 
                 if ($user) {
+                    // Crear sesión del usuario
                     $_SESSION['user_id'] = $user['id'];
                     $_SESSION['user_nom'] = $user['nom'];
                     $_SESSION['user_cognoms'] = $user['cognoms'];
                     $_SESSION['user_email'] = $user['correu'];
                     $_SESSION['login_time'] = time();
                     
-                    // Log del inicio de sesión
-                    $this->userModel->logUserActivity($user['id'], 'login', $_SERVER['REMOTE_ADDR']);
-                    
-                    $this->redirect('../../dashboard.php');
+                    // Redirigir al dashboard si login exitoso
+                    $this->redirect('../../public/index.php?controller=dashboard&action=index');
                 } else {
                     $error = 'Correu electrònic o contrasenya incorrectes';
-                    
-                    // Log del intento fallido
-                    $this->userModel->logFailedLogin($email, $_SERVER['REMOTE_ADDR']);
                 }
             } else {
                 $error = 'Si us plau, omple tots els camps';
             }
         }
         
-        // Cargar la vista
-        include __DIR__ . '/../views/horaris/login.php';
+        // Si hay error o es GET, cargar la vista de login
+        include __DIR__ . '/../views/auth/login.php';
     }
   
        public function register() {
@@ -99,17 +91,32 @@ class AuthController extends BaseController {
         // Cargar la vista
         include __DIR__ . '/../views/horaris/registre.php';
     }
-    
-    public function logout() {
-        if (isset($_SESSION['user_id'])) {
-            // Log del cierre de sesión
-            $this->userModel->logUserActivity($_SESSION['user_id'], 'logout', $_SERVER['REMOTE_ADDR']);
-        }
         
+    public function logout() {
+        // Asegurar que la sesión esté activa
+        if (session_status() !== PHP_SESSION_ACTIVE) {
+            session_start();
+        }
+
+        // Vaciar variables de sesión
+        $_SESSION = [];
+
+        // Borrar cookie de sesión si existe
+        if (ini_get("session.use_cookies")) {
+            $params = session_get_cookie_params();
+            setcookie(session_name(), '', time() - 42000,
+                $params['path'], $params['domain'],
+                $params['secure'], $params['httponly']
+            );
+        }
+
+        // Destruir sesión
         session_destroy();
-        $this->redirect('login.php');
+
+        // Redirigir a la página de login
+        $this->redirect('../views/auth/login.php');
     }
-    
+
     public function forgotPassword() {
         $message = '';
         $messageType = '';

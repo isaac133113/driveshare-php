@@ -1,48 +1,156 @@
 <?php
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/HorariModel.php';
+require_once __DIR__ . '/../models/DriveCoinModel.php';
+require_once __DIR__ . '/../models/VehicleModel.php';
+require_once __DIR__ . '/../models/HorariRutaModel.php';
 
 class DashboardController extends BaseController {
     protected $horariModel;
+    protected $vehicleModel;
+    protected $horariRutaModel;
     
     public function __construct() {
         parent::__construct();
         $this->requireAuth();
         $this->horariModel = new HorariModel();
+        $this->vehicleModel = new VehicleModel();
+        $this->horariRutaModel = new HorariRutaModel();
     }
     
     public function index() {
-        // Manejar logout
-        if (isset($_GET['logout'])) {
-            $this->logout();
+        $this->requireAuth();
+
+        // -----------------------------
+        // Variables que la vista espera
+        // -----------------------------
+        $message = '';
+        $messageType = '';
+
+        // -----------------------------
+        // Obtener vehículos del usuario
+        // -----------------------------
+        $userVehicles = $this->vehicleModel->getAllVehicles([
+            'user_id' => $_SESSION['user_id']
+        ]);
+
+        // -----------------------------
+        // Obtener rutas del usuario
+        // -----------------------------
+        $userRoutes = $this->horariRutaModel->getByUserId($_SESSION['user_id']);
+
+        // -----------------------------
+        // Procesamiento de nueva ruta
+        // -----------------------------
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'create_route') {
+            try {
+                $routeData = [
+                    'user_id' => $_SESSION['user_id'],
+                    'data_ruta' => $_POST['data_ruta'],
+                    'hora_inici' => $_POST['hora_inici'],
+                    'hora_fi' => $_POST['hora_fi'],
+                    'origen' => $_POST['origenInput'],
+                    'desti' => $_POST['destiInput'],
+                    'vehicle_id' => $_POST['vehicle_id'],
+                    'comentaris' => $_POST['comentaris'] ?? '',
+                    'origen_lat' => $_POST['origen_lat'],
+                    'origen_lng' => $_POST['origen_lng'],
+                    'desti_lat' => $_POST['desti_lat'],
+                    'desti_lng' => $_POST['desti_lng'],
+                    'plazas_disponibles' => $_POST['plazas_disponibles'],
+                    'precio_euros' => $_POST['precio_euros'],
+                    'estado' => 1
+                ];
+
+                if ($this->horariRutaModel->create($routeData)) {
+                    $message = "Ruta creada correctament!";
+                    $messageType = "success";
+                    // Recargar rutas
+                    $userRoutes = $this->horariRutaModel->getByUserId($_SESSION['user_id']);
+                } else {
+                    $message = "Error al crear la ruta";
+                    $messageType = "danger";
+                }
+            } catch (Exception $e) {
+                $message = "Error: " . $e->getMessage();
+                $messageType = "danger";
+            }
         }
-        
-        // Obtener datos del usuario actual
+
+        // -----------------------------
+        // Procesamiento de preferencias
+        // -----------------------------
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            if (isset($_POST['action']) && $_POST['action'] === 'save_preferences') {
+                $emailNotifications = isset($_POST['emailNotifications']) ? 1 : 0;
+                $smsNotifications = isset($_POST['smsNotifications']) ? 1 : 0;
+                $defaultVehicle = trim($_POST['defaultVehicle']);
+
+                $conn = Database::getInstance()->getConnection();
+                $stmt = $conn->prepare("UPDATE usuaris SET email_notifications = ?, sms_notifications = ?, default_vehicle = ? WHERE id = ?");
+                if ($stmt) {
+                    $stmt->bind_param("iisi", $emailNotifications, $smsNotifications, $defaultVehicle, $_SESSION['user_id']);
+                    $stmt->execute();
+                    $message = $stmt->affected_rows ? 'Preferències guardades correctament!' : 'No s\'ha fet cap canvi.';
+                    $messageType = 'success';
+                } else {
+                    $message = 'Error intern en preparar la consulta de preferències.';
+                    $messageType = 'danger';
+                }
+            }
+        }
+
+        // -----------------------------
+        // Datos adicionales para la vista
+        // -----------------------------
         $currentUser = $this->userModel->getById($_SESSION['user_id']);
         $userStats = $this->userModel->getUserStats($_SESSION['user_id']);
         $horarisStats = $this->horariModel->getHorarisStats($_SESSION['user_id']);
-        
-        // Obtener horarios próximos
         $upcomingHoraris = $this->horariModel->getUpcomingHoraris($_SESSION['user_id'], 7);
-        
-        // Obtener vehículos más utilizados por el usuario
         $favoriteVehicles = $this->horariModel->getUserMostUsedVehicles($_SESSION['user_id'], 3);
-        
-        // Obtener rutas favoritas
         $favoriteRoutes = $this->horariModel->getUserFavoriteRoutes($_SESSION['user_id'], 3);
-        
-        // Obtener lista de vehículos disponibles
         $vehicles = $this->horariModel->getVehiclesList();
-        
-        // Actividad reciente
         $recentActivity = $this->horariModel->getRecentActivity(5);
-        
-        // Estadísticas generales de la plataforma
         $generalStats = $this->getGeneralStats();
+
+        // Saldo DriveCoins
+        $driveCoinsBalance = 0;
+        try {
+            $driveModel = new DriveCoinModel();
+            $driveCoinsBalance = $driveModel->getBalance($_SESSION['user_id']);
+        } catch (Exception $e) {
+            $driveCoinsBalance = 0;
+        }
+
+        // Preferencias del usuario
+        $userPreferences = [
+            'email_notifications' => 1,
+            'sms_notifications' => 0,
+            'default_vehicle' => '',
+            'saldo' => 0.00
+        ];
+        try {
+            $conn = Database::getInstance()->getConnection();
+            $stmt = $conn->prepare("SELECT email_notifications, sms_notifications, default_vehicle, saldo FROM usuaris WHERE id = ?");
+            if ($stmt) {
+                $stmt->bind_param("i", $_SESSION['user_id']);
+                $stmt->execute();
+                $result = $stmt->get_result();
+                if ($result && $result->num_rows > 0) {
+                    $userPreferences = $result->fetch_assoc();
+                }
+            }
+        } catch (Throwable $e) {
+            // ignorar, usar valores por defecto
+        }
         
+
+        // -----------------------------
         // Cargar la vista
-        include __DIR__ . '/../views/horaris/dashboard.php';
+        // -----------------------------
+        include __DIR__ . '/../views/dashboard/index.php';
     }
+
     
     public function profile() {
         $this->requireAuth();

@@ -1,129 +1,17 @@
 <?php
 session_start();
 
-// Logout
-if (isset($_GET['logout'])) {
-    session_destroy();
-    header('Location: login.php');
-    exit;
-}
+// Nota: toda la lógica (conexión a BD, CRUD) fue movida al controlador `controllers/HorariController.php`.
+// Esta vista espera que el controlador suministre las variables:
+// - $message (string), $messageType (string), $editingHorari (array|null),
+// - $myHoraris (array), $allHoraris (mysqli_result|array)
+// Para permitir acceso directo (por compatibilidad), establecemos valores por defecto seguros.
 
-// Verificar si el usuario está logueado
-if (!isset($_SESSION['user_id'])) {
-    header('Location: login.php');
-    exit;
-}
-
-$mysql = new mysqli('localhost', 'root', '', 'aplicaciocompra');
-if ($mysql->connect_error) {
-    die('Error de connexió: ' . $mysql->connect_error);
-}
-
-// Variables
-$message = '';
-$messageType = '';
-$editingHorari = null;
-
-// CRUD Operations
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (isset($_POST['action'])) {
-        switch ($_POST['action']) {
-            case 'create':
-                $stmt = $mysql->prepare("INSERT INTO horaris_rutes (user_id, data_ruta, hora_inici, hora_fi, origen, desti, vehicle, comentaris) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->bind_param('isssssss', $_SESSION['user_id'], $_POST['data_ruta'], $_POST['hora_inici'], $_POST['hora_fi'], $_POST['origen'], $_POST['desti'], $_POST['vehicle'], $_POST['comentaris']);
-                
-                if ($stmt->execute()) {
-                    header('Location: horaris.php?created=1');
-                    exit;
-                } else {
-                    $message = 'Error al crear l\'horari: ' . $stmt->error;
-                    $messageType = 'danger';
-                }
-                $stmt->close();
-                break;
-                
-            case 'update':
-                $stmt = $mysql->prepare("UPDATE horaris_rutes SET data_ruta=?, hora_inici=?, hora_fi=?, origen=?, desti=?, vehicle=?, comentaris=? WHERE id=? AND user_id=?");
-                $stmt->bind_param('sssssssii', $_POST['data_ruta'], $_POST['hora_inici'], $_POST['hora_fi'], $_POST['origen'], $_POST['desti'], $_POST['vehicle'], $_POST['comentaris'], $_POST['id'], $_SESSION['user_id']);
-                
-                if ($stmt->execute()) {
-                    header('Location: horaris.php?updated=1');
-                    exit;
-                } else {
-                    $message = 'Error al actualitzar l\'horari: ' . $stmt->error;
-                    $messageType = 'danger';
-                }
-                $stmt->close();
-                break;
-        }
-    }
-}
-
-// Delete operation
-if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
-    $stmt = $mysql->prepare("DELETE FROM horaris_rutes WHERE id=? AND user_id=?");
-    $stmt->bind_param('ii', $_GET['delete'], $_SESSION['user_id']);
-    
-    if ($stmt->execute()) {
-        header('Location: horaris.php?deleted=1');
-        exit;
-    } else {
-        $message = 'Error al eliminar l\'horari.';
-        $messageType = 'danger';
-    }
-    $stmt->close();
-}
-
-// Mensajes de confirmación después de redirección
-if (isset($_GET['created']) && $_GET['created'] == '1') {
-    $message = 'Horari creat correctament!';
-    $messageType = 'success';
-}
-
-if (isset($_GET['updated']) && $_GET['updated'] == '1') {
-    $message = 'Horari actualitzat correctament!';
-    $messageType = 'success';
-}
-
-if (isset($_GET['deleted']) && $_GET['deleted'] == '1') {
-    $message = 'Horari eliminat correctament!';
-    $messageType = 'success';
-}
-
-// Get horario for editing
-if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
-    $stmt = $mysql->prepare("SELECT * FROM horaris_rutes WHERE id=? AND user_id=?");
-    $stmt->bind_param('ii', $_GET['edit'], $_SESSION['user_id']);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $editingHorari = $result->fetch_assoc();
-    $stmt->close();
-}
-
-// Obtener todos los horarios (propios y de otros usuarios)
-$allHoraris = $mysql->query("
-    SELECT hr.*, u.nom, u.cognoms 
-    FROM horaris_rutes hr 
-    JOIN usuaris u ON hr.user_id = u.id 
-    ORDER BY hr.data_ruta DESC, hr.hora_inici ASC
-");
-
-// Obtener solo los horarios del usuario actual
-$myHorarisQuery = $mysql->prepare("
-    SELECT hr.*, u.nom, u.cognoms 
-    FROM horaris_rutes hr 
-    JOIN usuaris u ON hr.user_id = u.id 
-    WHERE hr.user_id = ?
-    ORDER BY hr.data_ruta DESC, hr.hora_inici ASC
-");
-$myHorarisQuery->bind_param('i', $_SESSION['user_id']);
-$myHorarisQuery->execute();
-$myHorarisResult = $myHorarisQuery->get_result();
-$myHoraris = [];
-while ($row = $myHorarisResult->fetch_assoc()) {
-    $myHoraris[] = $row;
-}
-$myHorarisQuery->close();
+$message = $message ?? '';
+$messageType = $messageType ?? '';
+$editingHorari = $editingHorari ?? null;
+$myHoraris = $myHoraris ?? [];
+$allHoraris = $allHoraris ?? [];
 ?>
 
 <!DOCTYPE html>
@@ -468,9 +356,9 @@ $myHorarisQuery->close();
                     <i class="bi bi-house me-1"></i>Dashboard
                 </a>
                 <a class="nav-link active" href="horaris.php">
-                    <i class="bi bi-calendar-week me-1"></i>Horaris
+                    <i class="bi bi-calendar-week me-1"></i>Horari
                 </a>
-                <a class="nav-link" href="?logout=1">
+                <a class="nav-link" href="controllers/AuthController.php?action=logout">
                     <i class="bi bi-box-arrow-right me-1"></i>Sortir
                 </a>
             </div>
@@ -688,49 +576,98 @@ $myHorarisQuery->close();
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php while ($row = $allHoraris->fetch_assoc()): ?>
-                                        <tr class="horari-row <?php echo ($row['user_id'] == $_SESSION['user_id']) ? 'table-primary' : ''; ?>"
-                                            data-date="<?php echo $row['data_ruta']; ?>"
-                                            data-vehicle="<?php echo htmlspecialchars($row['vehicle']); ?>"
-                                            data-origen="<?php echo htmlspecialchars($row['origen']); ?>"
-                                            data-desti="<?php echo htmlspecialchars($row['desti']); ?>"
-                                            data-user="<?php echo htmlspecialchars($row['nom'] . ' ' . $row['cognoms']); ?>"
-                                            data-tab="all">
-                                            <td>
-                                                <div class="d-flex align-items-center">
-                                                    <i class="bi bi-person-circle text-primary me-2"></i>
-                                                    <span><?php echo htmlspecialchars($row['nom'] . ' ' . $row['cognoms']); ?></span>
-                                                    <?php if ($row['user_id'] == $_SESSION['user_id']): ?>
-                                                        <span class="badge bg-primary ms-2">Tu</span>
-                                                    <?php endif; ?>
-                                                </div>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-info">
-                                                    <?php echo date('d/m/Y', strtotime($row['data_ruta'])); ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <small class="text-muted">
-                                                    <?php echo date('H:i', strtotime($row['hora_inici'])); ?> - 
-                                                    <?php echo date('H:i', strtotime($row['hora_fi'])); ?>
-                                                </small>
-                                            </td>
-                                            <td>
-                                                <strong><?php echo htmlspecialchars($row['origen']); ?></strong>
-                                                <i class="bi bi-arrow-right mx-1"></i>
-                                                <strong><?php echo htmlspecialchars($row['desti']); ?></strong>
-                                            </td>
-                                            <td>
-                                                <span class="badge bg-secondary">
-                                                    <?php echo htmlspecialchars($row['vehicle']); ?>
-                                                </span>
-                                            </td>
-                                            <td>
-                                                <small><?php echo htmlspecialchars($row['comentaris']); ?></small>
-                                            </td>
-                                        </tr>
-                                    <?php endwhile; ?>
+                                    <?php
+                                    // Soportar resultados como mysqli_result o como array proporcionado por el controlador
+                                    if ($allHoraris instanceof mysqli_result) {
+                                        while ($row = $allHoraris->fetch_assoc()): ?>
+                                            <tr class="horari-row <?php echo ($row['user_id'] == $_SESSION['user_id']) ? 'table-primary' : ''; ?>"
+                                                data-date="<?php echo $row['data_ruta']; ?>"
+                                                data-vehicle="<?php echo htmlspecialchars($row['vehicle']); ?>"
+                                                data-origen="<?php echo htmlspecialchars($row['origen']); ?>"
+                                                data-desti="<?php echo htmlspecialchars($row['desti']); ?>"
+                                                data-user="<?php echo htmlspecialchars($row['nom'] . ' ' . $row['cognoms']); ?>"
+                                                data-tab="all">
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="bi bi-person-circle text-primary me-2"></i>
+                                                        <span><?php echo htmlspecialchars($row['nom'] . ' ' . $row['cognoms']); ?></span>
+                                                        <?php if ($row['user_id'] == $_SESSION['user_id']): ?>
+                                                            <span class="badge bg-primary ms-2">Tu</span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info">
+                                                        <?php echo date('d/m/Y', strtotime($row['data_ruta'])); ?>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted">
+                                                        <?php echo date('H:i', strtotime($row['hora_inici'])); ?> - 
+                                                        <?php echo date('H:i', strtotime($row['hora_fi'])); ?>
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <strong><?php echo htmlspecialchars($row['origen']); ?></strong>
+                                                    <i class="bi bi-arrow-right mx-1"></i>
+                                                    <strong><?php echo htmlspecialchars($row['desti']); ?></strong>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-secondary">
+                                                        <?php echo htmlspecialchars($row['vehicle']); ?>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <small><?php echo htmlspecialchars($row['comentaris']); ?></small>
+                                                </td>
+                                            </tr>
+                                        <?php endwhile;
+                                    } elseif (is_array($allHoraris)) {
+                                        foreach ($allHoraris as $row): ?>
+                                            <tr class="horari-row <?php echo ($row['user_id'] == $_SESSION['user_id']) ? 'table-primary' : ''; ?>"
+                                                data-date="<?php echo $row['data_ruta']; ?>"
+                                                data-vehicle="<?php echo htmlspecialchars($row['vehicle']); ?>"
+                                                data-origen="<?php echo htmlspecialchars($row['origen']); ?>"
+                                                data-desti="<?php echo htmlspecialchars($row['desti']); ?>"
+                                                data-user="<?php echo htmlspecialchars($row['nom'] . ' ' . $row['cognoms']); ?>"
+                                                data-tab="all">
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="bi bi-person-circle text-primary me-2"></i>
+                                                        <span><?php echo htmlspecialchars($row['nom'] . ' ' . $row['cognoms']); ?></span>
+                                                        <?php if ($row['user_id'] == $_SESSION['user_id']): ?>
+                                                            <span class="badge bg-primary ms-2">Tu</span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-info">
+                                                        <?php echo date('d/m/Y', strtotime($row['data_ruta'])); ?>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted">
+                                                        <?php echo date('H:i', strtotime($row['hora_inici'])); ?> - 
+                                                        <?php echo date('H:i', strtotime($row['hora_fi'])); ?>
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <strong><?php echo htmlspecialchars($row['origen']); ?></strong>
+                                                    <i class="bi bi-arrow-right mx-1"></i>
+                                                    <strong><?php echo htmlspecialchars($row['desti']); ?></strong>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-secondary">
+                                                        <?php echo htmlspecialchars($row['vehicle']); ?>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <small><?php echo htmlspecialchars($row['comentaris']); ?></small>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach;
+                                    }
+                                    ?>
                                 </tbody>
                             </table>
                         </div>
