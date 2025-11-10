@@ -1,5 +1,4 @@
 <?php
-session_start();
 
 // Nota: toda la lógica (conexión a BD, CRUD) fue movida al controlador `controllers/HorariController.php`.
 // Esta vista espera que el controlador suministre las variables:
@@ -1249,7 +1248,3 @@ $allHoraris = $allHoraris ?? [];
     <?php endif; ?>
 </body>
 </html>
-
-<?php
-$mysql->close();
-?>

@@ -39,12 +39,8 @@ class AuthController extends BaseController {
         // Si hay error o es GET, cargar la vista de login
         include __DIR__ . '/../views/auth/login.php';
     }
-  
-       public function register() {
-        if ($this->isAuthenticated()) {
-            $this->redirect('../../dashboard.php');
-        }
-        
+
+    public function register() {        
         $errors = [];
         $success = false;
         
@@ -87,9 +83,9 @@ class AuthController extends BaseController {
                 }
             }
         }
-        
+
         // Cargar la vista
-        include __DIR__ . '/../views/horaris/registre.php';
+        include __DIR__ . '/../views/auth/registre.php';
     }
         
     public function logout() {

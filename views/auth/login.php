@@ -61,7 +61,7 @@
                             <div class="text-center">
                                 <p class="text-muted mb-0">
                                     No tens compte? 
-                                    <a href="registre.php" class="text-primary fw-semibold text-decoration-none">
+                                    <a href="../../public/index.php?controller=auth&action=register" class="text-primary fw-semibold text-decoration-none">
                                         Registra't aquí
                                     </a>
                                 </p>
