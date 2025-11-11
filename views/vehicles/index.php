@@ -49,7 +49,7 @@
                                 <div class="card border-0 shadow-lg rounded-4 h-100">
                                     <!-- Imagen del vehículo -->
                                     <?php if (!empty($vehicle['images'])): ?>
-                                        <img src="<?php echo htmlspecialchars($vehicle['images'][0]); ?>" 
+                                        <img src="<?php echo htmlspecialchars('/' . $vehicle['images'][0]); ?>" 
                                              class="card-img-top rounded-top-4"
                                              alt="<?php echo htmlspecialchars($vehicle['marca_model']); ?>"
                                              style="height: 200px; object-fit: cover;">

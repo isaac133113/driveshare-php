@@ -153,15 +153,7 @@ $userPreferences = $userPreferences ?? [
                         
                         <!-- Segunda fila de botones -->
                         <div class="row g-3 mt-2">
-                            <div class="col-md-4">
-                                <div class="d-grid">
-                                    <a href="/public/index.php?controller=vehicle&action=index" class="btn btn-outline-primary btn-lg rounded-3">
-                                        <i class="bi bi-car-front me-2"></i>Els Meus Vehicles
-                                        <small class="d-block text-muted">Gestiona els teus vehicles</small>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="d-grid">
                                     <button type="button" class="btn btn-outline-success btn-lg rounded-3" data-bs-toggle="modal" data-bs-target="#newRouteModal">
                                         <i class="bi bi-map me-2"></i>Nova Ruta
@@ -169,7 +161,7 @@ $userPreferences = $userPreferences ?? [
                                     </button>
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="d-grid">
                                     <button type="button" class="btn btn-outline-info btn-lg rounded-3" data-bs-toggle="modal" data-bs-target="#routesListModal">
                                         <i class="bi bi-list-check me-2"></i>Les Meves Rutes
@@ -191,9 +183,9 @@ $userPreferences = $userPreferences ?? [
                             </div>
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <button type="button" class="btn btn-outline-success btn-lg rounded-3" data-bs-toggle="modal" data-bs-target="#newRouteModal">
-                                        <i class="bi bi-map me-2"></i>Nova Ruta
-                                        <small class="d-block text-muted">Programa un nou viatge</small>
+                                    <button class="btn btn-outline-dark btn-lg rounded-3" onclick="viewReservations()">
+                                        <i class="bi bi-clipboard-check me-2"></i>Mis Reservas
+                                        <small class="d-block text-muted">Historial y reservas activas</small>
                                     </button>
                                 </div>
                             </div>
@@ -470,6 +462,12 @@ $userPreferences = $userPreferences ?? [
                     modal.show();
                 }, 300);
             }, 1000);
+        }
+        
+        // View Reservations
+        function viewReservations() {
+            const modal = new bootstrap.Modal(document.getElementById('rentalHistoryModal'));
+            modal.show();
         }
     </script>
 

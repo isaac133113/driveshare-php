@@ -8,19 +8,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="../../dashboard.php">
-                <i class="fas fa-car"></i> DriveShare
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="../../dashboard.php">
-                    <i class="fas fa-arrow-left"></i> Tornar al Dashboard
-                </a>
-            </div>
-        </div>
-    </nav>
+    <?php include '../templates/navbar.php'; ?>
 
     <div class="container mt-4">
         <div class="row">

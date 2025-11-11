@@ -26,48 +26,123 @@ $allHoraris = $allHoraris ?? [];
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
     <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
         .nav-tabs .nav-link {
             color: #000 !important;
+            border-radius: 10px 10px 0 0;
+            font-weight: 500;
         }
+        
         .nav-tabs .nav-link.active {
-            color: #0d6efd !important;
+            background: linear-gradient(45deg, #007bff, #0056b3);
+            color: white !important;
+            border: none;
         }
+        
+        .card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
+        }
+        
+        .btn {
+            border-radius: 10px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .table {
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .modal-content {
+            border-radius: 15px;
+            border: none;
+        }
+        
+        .form-control, .form-select {
+            border-radius: 10px;
+            border: 1px solid #e0e0e0;
+            padding: 12px 15px;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+            border-color: #667eea;
+        }
+        
         .map-container {
             height: 300px;
             border: 1px solid #ddd;
-            border-radius: 8px;
-            margin-bottom: 10px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
+        
         .map-input-group {
             position: relative;
         }
+        
         .location-display {
             background-color: #f8f9fa;
             border: 1px solid #dee2e6;
-            border-radius: 4px;
-            padding: 8px 12px;
+            border-radius: 10px;
+            padding: 12px 15px;
             min-height: 38px;
             display: flex;
             align-items: center;
         }
+        
         .filter-card {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border: none;
             box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            border-radius: 15px;
         }
+        
         .filter-toggle {
             cursor: pointer;
             transition: all 0.3s ease;
+            border-radius: 10px;
+            padding: 10px 15px;
         }
+        
         .filter-toggle:hover {
             background-color: rgba(0,0,0,0.05);
+            transform: translateY(-1px);
         }
+        
         .no-results {
             text-align: center;
             padding: 3rem;
             opacity: 0.7;
         }
+        
+        .badge {
+            border-radius: 8px;
+            font-weight: 500;
+        }
+        
+        .alert {
+            border-radius: 12px;
+            border: none;
+        }
+        
         @media (max-width: 768px) {
             .filter-row {
                 flex-direction: column;
@@ -78,6 +153,7 @@ $allHoraris = $allHoraris ?? [];
             .table-responsive {
                 font-size: 0.9rem;
             }
+        }
             .btn-group {
                 flex-direction: column;
             }
@@ -343,26 +419,8 @@ $allHoraris = $allHoraris ?? [];
         }
     </style>
 </head>
-<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="dashboard.php">
-                <i class="bi bi-car-front me-2"></i>DriveShare
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="dashboard.php">
-                    <i class="bi bi-house me-1"></i>Dashboard
-                </a>
-                <a class="nav-link active" href="horaris.php">
-                    <i class="bi bi-calendar-week me-1"></i>Horari
-                </a>
-                <a class="nav-link" href="controllers/AuthController.php?action=logout">
-                    <i class="bi bi-box-arrow-right me-1"></i>Sortir
-                </a>
-            </div>
-        </div>
-    </nav>
+<body>
+    <?php include __DIR__ . '/../templates/navbar.php'; ?>
 
     <div class="container py-4">
         <!-- Header -->
@@ -425,27 +483,29 @@ $allHoraris = $allHoraris ?? [];
             <div class="collapse show" id="filterPanel">
                 <div class="card-body pt-0">
                     <div class="row g-3 filter-row">
-                        <div class="col-md-3 filter-col">
+                        <div class="col-md-4 filter-col">
                             <label class="form-label small fw-semibold text-muted">📅 Data</label>
                             <input type="date" class="form-control form-control-sm" id="filterDate" placeholder="Selecciona data">
                         </div>
-                        <div class="col-md-3 filter-col">
+                        <div class="col-md-4 filter-col">
                             <label class="form-label small fw-semibold text-muted">🚗 Vehicle</label>
                             <select class="form-select form-select-sm" id="filterVehicle">
                                 <option value="">Tots els vehicles</option>
-                                <option value="Seat Ibiza">Seat Ibiza</option>
-                                <option value="Ford Focus">Ford Focus</option>
-                                <option value="Tesla Model 3">Tesla Model 3</option>
-                                <option value="BMW X5">BMW X5</option>
+                                <?php
+                                // Obtener vehículos desde la base de datos
+                                require_once __DIR__ . '/../../config/Database.php';
+                                $database = Database::getInstance();
+                                $conn = $database->getConnection();
+                                $result = $conn->query("SELECT DISTINCT marca_model FROM vehicles WHERE user_id = {$_SESSION['user_id']} ORDER BY marca_model");
+                                while ($vehicle = $result->fetch_assoc()) {
+                                    echo "<option value=\"{$vehicle['marca_model']}\">{$vehicle['marca_model']}</option>";
+                                }
+                                ?>
                             </select>
                         </div>
-                        <div class="col-md-3 filter-col">
-                            <label class="form-label small fw-semibold text-muted">📍 Ubicació</label>
+                        <div class="col-md-4 filter-col">
+                            <label class="form-label small fw-semibold text-muted">� Ubicació</label>
                             <input type="text" class="form-control form-control-sm" id="filterLocation" placeholder="Origen o destí">
-                        </div>
-                        <div class="col-md-3 filter-col">
-                            <label class="form-label small fw-semibold text-muted">👤 Usuari</label>
-                            <input type="text" class="form-control form-control-sm" id="filterUser" placeholder="Nom usuari">
                         </div>
                     </div>
                     <div class="row mt-3">
@@ -527,11 +587,15 @@ $allHoraris = $allHoraris ?? [];
                                                 </td>
                                                 <td>
                                                     <div class="btn-group btn-group-sm">
-                                                        <a href="?edit=<?php echo $row['id']; ?>" class="btn btn-outline-primary btn-sm">
+                                                        <a href="?edit=<?php echo $row['id']; ?>" class="btn btn-outline-primary btn-sm" title="Editar">
                                                             <i class="bi bi-pencil"></i>
                                                         </a>
+                                                        <button type="button" class="btn btn-outline-success btn-sm" title="Gestionar WhatsApp" 
+                                                                onclick="openChatManagement(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars($row['origen'] . ' → ' . $row['desti']); ?>')">
+                                                            <i class="bi bi-whatsapp"></i>
+                                                        </button>
                                                         <a href="?delete=<?php echo $row['id']; ?>" 
-                                                           class="btn btn-outline-danger btn-sm"
+                                                           class="btn btn-outline-danger btn-sm" title="Eliminar"
                                                            onclick="return confirm('Estàs segur que vols eliminar aquest horari?')">
                                                             <i class="bi bi-trash"></i>
                                                         </a>
@@ -572,6 +636,7 @@ $allHoraris = $allHoraris ?? [];
                                         <th>Ruta</th>
                                         <th>Vehicle</th>
                                         <th>Comentaris</th>
+                                        <th>Accions</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -619,6 +684,18 @@ $allHoraris = $allHoraris ?? [];
                                                 <td>
                                                     <small><?php echo htmlspecialchars($row['comentaris']); ?></small>
                                                 </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <?php if ($row['user_id'] != $_SESSION['user_id']): ?>
+                                                            <button type="button" class="btn btn-outline-success btn-sm" title="Contactar" 
+                                                                    onclick="startChat(<?php echo $row['user_id']; ?>, <?php echo $row['id']; ?>, '<?php echo htmlspecialchars($row['nom'] . ' ' . $row['cognoms']); ?>', '<?php echo htmlspecialchars($row['origen'] . ' → ' . $row['desti']); ?>')">
+                                                                <i class="bi bi-whatsapp"></i>
+                                                            </button>
+                                                        <?php else: ?>
+                                                            <span class="badge bg-secondary">El teu horari</span>
+                                                        <?php endif; ?>
+                                                    </div>
+                                                </td>
                                             </tr>
                                         <?php endwhile;
                                     } elseif (is_array($allHoraris)) {
@@ -662,6 +739,18 @@ $allHoraris = $allHoraris ?? [];
                                                 </td>
                                                 <td>
                                                     <small><?php echo htmlspecialchars($row['comentaris']); ?></small>
+                                                </td>
+                                                <td>
+                                                    <div class="btn-group btn-group-sm">
+                                                        <?php if ($row['user_id'] != $_SESSION['user_id']): ?>
+                                                            <button type="button" class="btn btn-outline-success btn-sm" title="Contactar" 
+                                                                    onclick="startChat(<?php echo $row['user_id']; ?>, <?php echo $row['id']; ?>, '<?php echo htmlspecialchars($row['nom'] . ' ' . $row['cognoms']); ?>', '<?php echo htmlspecialchars($row['origen'] . ' → ' . $row['desti']); ?>')">
+                                                                <i class="bi bi-whatsapp"></i>
+                                                            </button>
+                                                        <?php else: ?>
+                                                            <span class="badge bg-secondary">El teu horari</span>
+                                                        <?php endif; ?>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         <?php endforeach;
@@ -755,10 +844,19 @@ $allHoraris = $allHoraris ?? [];
                             </label>
                             <select class="form-control" name="vehicle" required>
                                 <option value="">Selecciona un vehicle</option>
-                                <option value="Seat Ibiza" <?php echo ($editingHorari && $editingHorari['vehicle'] == 'Seat Ibiza') ? 'selected' : ''; ?>>Seat Ibiza</option>
-                                <option value="Ford Focus" <?php echo ($editingHorari && $editingHorari['vehicle'] == 'Ford Focus') ? 'selected' : ''; ?>>Ford Focus</option>
-                                <option value="Tesla Model 3" <?php echo ($editingHorari && $editingHorari['vehicle'] == 'Tesla Model 3') ? 'selected' : ''; ?>>Tesla Model 3</option>
-                                <option value="BMW X5" <?php echo ($editingHorari && $editingHorari['vehicle'] == 'BMW X5') ? 'selected' : ''; ?>>BMW X5</option>
+                                <?php
+                                // Obtener vehículos del usuario desde la base de datos
+                                if (!isset($conn)) {
+                                    require_once __DIR__ . '/../../config/Database.php';
+                                    $database = Database::getInstance();
+                                    $conn = $database->getConnection();
+                                }
+                                $result = $conn->query("SELECT id, marca_model, tipus FROM vehicles WHERE user_id = {$_SESSION['user_id']} ORDER BY marca_model");
+                                while ($vehicle = $result->fetch_assoc()) {
+                                    $selected = ($editingHorari && $editingHorari['vehicle'] == $vehicle['marca_model']) ? 'selected' : '';
+                                    echo "<option value=\"{$vehicle['marca_model']}\" data-vehicle-id=\"{$vehicle['id']}\" $selected>{$vehicle['marca_model']} ({$vehicle['tipus']})</option>";
+                                }
+                                ?>
                             </select>
                         </div>
                         
@@ -1103,6 +1201,12 @@ $allHoraris = $allHoraris ?? [];
                     {
                         targets: [2, 3, 4, 5], // Horari, Ruta, Vehicle, Comentaris
                         orderable: true
+                    },
+                    {
+                        targets: [6], // Accions
+                        orderable: false,
+                        searchable: false,
+                        className: 'text-center'
                     }
                 ],
                 
@@ -1140,13 +1244,12 @@ $allHoraris = $allHoraris ?? [];
             const filterDate = document.getElementById('filterDate');
             const filterVehicle = document.getElementById('filterVehicle');
             const filterLocation = document.getElementById('filterLocation');
-            const filterUser = document.getElementById('filterUser');
             const clearFiltersBtn = document.getElementById('clearFilters');
             const autoFilterCheck = document.getElementById('autoFilter');
             const resultsCount = document.getElementById('resultsCount');
 
             // Event listeners para filtros automáticos
-            [filterDate, filterVehicle, filterLocation, filterUser].forEach(filter => {
+            [filterDate, filterVehicle, filterLocation].forEach(filter => {
                 filter.addEventListener('input', () => {
                     if (autoFilterCheck.checked) {
                         applyDataTableFilters();
@@ -1164,7 +1267,6 @@ $allHoraris = $allHoraris ?? [];
                 filterDate.value = '';
                 filterVehicle.value = '';
                 filterLocation.value = '';
-                filterUser.value = '';
                 applyDataTableFilters();
             });
 
@@ -1176,7 +1278,6 @@ $allHoraris = $allHoraris ?? [];
             const filterDate = document.getElementById('filterDate').value;
             const filterVehicle = document.getElementById('filterVehicle').value;
             const filterLocation = document.getElementById('filterLocation').value;
-            const filterUser = document.getElementById('filterUser').value;
             
             // Obtener tab activo
             const activeTab = document.querySelector('.nav-link.active').id;
@@ -1208,10 +1309,6 @@ $allHoraris = $allHoraris ?? [];
                 table.column(isMyHoraris ? 2 : 3).search(filterLocation);
             }
             
-            if (filterUser && !isMyHoraris) {
-                table.column(0).search(filterUser);
-            }
-            
             // Redraw de la tabla
             table.draw();
             
@@ -1235,6 +1332,213 @@ $allHoraris = $allHoraris ?? [];
                 document.getElementById('filterLocation').focus();
             }
         });
+
+        // ==========================================
+        // FUNCIONES DE WHATSAPP
+        // ==========================================
+
+        // Función para iniciar chat en WhatsApp con otro usuario sobre un horario específico
+        function startChat(userId, horariId, userName, routeInfo) {
+            // Mensaje predefinido para WhatsApp
+            const message = `Hola ${userName}! 
+            
+M'interessaria unir-me a la teva ruta: ${routeInfo}
+
+Tens places disponibles? Gràcies!
+
+--
+Enviat des de DriveShare`;
+            
+            // Codificar el mensaje para URL
+            const encodedMessage = encodeURIComponent(message);
+            
+            // Mostrar modal de confirmación antes de redirigir
+            const modalHtml = `
+                <div class="modal fade" id="whatsappModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-whatsapp text-success"></i> Contactar per WhatsApp
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Ruta:</strong> ${routeInfo}<br>
+                                    <strong>Conductor:</strong> ${userName}
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Missatge que s'enviarà:</label>
+                                    <div class="form-control" style="height: auto; background-color: #f8f9fa;">
+                                        ${message.replace(/\n/g, '<br>')}
+                                    </div>
+                                </div>
+                                <div class="alert alert-warning">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                    S'obrirà WhatsApp per contactar directament amb ${userName}
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel·lar</button>
+                                <button type="button" class="btn btn-success" onclick="openWhatsApp('${encodedMessage}')">
+                                    <i class="bi bi-whatsapp"></i> Obrir WhatsApp
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Eliminar modal anterior si existe
+            const existingModal = document.getElementById('whatsappModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Añadir modal al DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Mostrar modal
+            const modal = new bootstrap.Modal(document.getElementById('whatsappModal'));
+            modal.show();
+        }
+
+        // Función para abrir WhatsApp con el mensaje
+        function openWhatsApp(encodedMessage) {
+            // URL de WhatsApp Web con mensaje predefinido
+            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`;
+            
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('whatsappModal'));
+            modal.hide();
+            
+            // Abrir WhatsApp en una nueva pestaña
+            window.open(whatsappUrl, '_blank');
+            
+            // Mostrar confirmación
+            setTimeout(() => {
+                showInfoModal('📱 WhatsApp obert', 
+                    'S\'ha obert WhatsApp amb el missatge preparat. Selecciona el contacte del conductor per enviar-lo.');
+            }, 500);
+        }
+
+        // Función para gestión de chat (propietarios) - ahora redirige a WhatsApp Business
+        function openChatManagement(horariId, routeInfo) {
+            const modalHtml = `
+                <div class="modal fade" id="whatsappManagementModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="bi bi-whatsapp text-success"></i> Gestió via WhatsApp
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle"></i>
+                                    <strong>Ruta:</strong> ${routeInfo}
+                                </div>
+                                <p>Com a conductor d'aquesta ruta, els passatgers et contactaran directament per WhatsApp.</p>
+                                <div class="alert alert-success">
+                                    <i class="bi bi-lightbulb"></i>
+                                    <strong>Consell:</strong> Mantén el teu WhatsApp actiu per rebre les consultes dels interessats en la teva ruta.
+                                </div>
+                                <div class="text-center">
+                                    <i class="bi bi-whatsapp display-4 text-success"></i>
+                                    <p class="mt-3">WhatsApp Business</p>
+                                    <p class="small text-muted">Els usuaris et contactaran directament per WhatsApp quan estiguin interessats en la teva ruta.</p>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tancar</button>
+                                <button type="button" class="btn btn-success" onclick="openWhatsAppBusiness()">
+                                    <i class="bi bi-whatsapp"></i> WhatsApp Business
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Eliminar modal anterior si existe
+            const existingModal = document.getElementById('whatsappManagementModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Añadir modal al DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Mostrar modal
+            const modal = new bootstrap.Modal(document.getElementById('whatsappManagementModal'));
+            modal.show();
+        }
+
+        // Función para abrir WhatsApp Business
+        function openWhatsAppBusiness() {
+            const whatsappBusinessUrl = 'https://www.whatsapp.com/business/';
+            
+            // Cerrar modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('whatsappManagementModal'));
+            modal.hide();
+            
+            // Abrir WhatsApp Business en una nueva pestaña
+            window.open(whatsappBusinessUrl, '_blank');
+        }
+                </div>
+            `;
+
+            // Eliminar modal anterior si existe
+            const existingModal = document.getElementById('whatsappManagementModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Añadir modal al DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Mostrar modal
+            const modal = new bootstrap.Modal(document.getElementById('whatsappManagementModal'));
+            modal.show();
+        }
+
+        // Función helper para mostrar modals informativos
+        function showInfoModal(title, content) {
+            const modalHtml = `
+                <div class="modal fade" id="infoModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">${title}</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <p>${content}</p>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">D'acord</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Eliminar modal anterior si existe
+            const existingModal = document.getElementById('infoModal');
+            if (existingModal) {
+                existingModal.remove();
+            }
+
+            // Añadir modal al DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+            // Mostrar modal
+            const modal = new bootstrap.Modal(document.getElementById('infoModal'));
+            modal.show();
+        }
     </script>
     
     <?php if ($editingHorari): ?>
