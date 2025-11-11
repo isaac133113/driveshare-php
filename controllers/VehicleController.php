@@ -26,35 +26,39 @@ class VehicleController extends BaseController {
             switch ($_POST['action']) {
                 case 'save':
                     $result = $this->saveVehicle();
-                    $message = $result['message'];
-                    $messageType = $result['type'];
-                    break;
+                    header("Location: ?controller=vehicle&action=index&success=" . urlencode($result['message']) . "&type=" . $result['type']);
+                    exit;
+
                 case 'delete':
                     $result = $this->deleteVehicle();
-                    $message = $result['message'];
-                    $messageType = $result['type'];
-                    break;
+                    header("Location: ?controller=vehicle&action=index&success=" . urlencode($result['message']) . "&type=" . $result['type']);
+                    exit;
+
                 case 'upload_image':
                     $result = $this->uploadVehicleImages();
-                    $message = $result['message'];
-                    $messageType = $result['type'];
-                    break;
+                    header("Location: ?controller=vehicle&action=index&success=" . urlencode($result['message']) . "&type=" . $result['type']);
+                    exit;
             }
         }
-        $message = '';
-        $messageType = '';
-        
         
         // Cargar la vista
         include __DIR__ . '/../views/vehicles/index.php';
     }
-        
+
     private function getVehiclesList($filtros = []) {
         require_once __DIR__ . '/../models/VehicleModel.php';
         $vehicleModel = new VehicleModel();
-        return $vehicleModel->getAllVehicles($filtros);
+        $vehicles = $vehicleModel->getAllVehicles($filtros);
+
+        // Agregar imágenes a cada vehículo
+        foreach ($vehicles as &$v) {
+            $v['images'] = $vehicleModel->getVehicleImages($v['id']);
+            $v['images'] = array_map(fn($img) => $img['url'], $v['images']); // solo URLs
+        }
+
+        return $vehicles;
     }
-    
+
     private function getTiposVehicles() {
         return [
             'sedan' => 'Sedan',
@@ -255,20 +259,5 @@ class VehicleController extends BaseController {
         }
     }
 
-}
-
-// Manejo de rutas
-if (basename($_SERVER['PHP_SELF']) === 'VehicleController.php') {
-    $controller = new VehicleController();
-    
-    $action = $_GET['action'] ?? 'index';
-    
-    switch ($action) {
-        case 'details':
-            $controller->details();
-            break;
-        default:
-            $controller->index();
-    }
 }
 ?>

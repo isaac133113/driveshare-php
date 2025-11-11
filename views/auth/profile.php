@@ -9,24 +9,7 @@
 </head>
 <body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="../../dashboard.php">
-                <i class="bi bi-car-front me-2"></i>DriveShare
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="../../dashboard.php">
-                    <i class="bi bi-house me-1"></i>Dashboard
-                </a>
-                <a class="nav-link active" href="#">
-                    <i class="bi bi-person me-1"></i>Perfil
-                </a>
-                <a class="nav-link" href="../../controllers/AuthController.php?action=logout">
-                    <i class="bi bi-box-arrow-right me-1"></i>Sortir
-                </a>
-            </div>
-        </div>
-    </nav>
+    <?php include_once __DIR__ . "/../templates/navbar.php" ?>
 
     <div class="container py-4">
         <div class="row justify-content-center">
