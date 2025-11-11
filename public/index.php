@@ -1,4 +1,6 @@
 <?php
+ob_start(); // Inicia buffer de salida
+
 session_start();
 
 require_once __DIR__ . '/../controllers/AuthController.php';
@@ -6,7 +8,6 @@ require_once __DIR__ . '/../controllers/VehicleController.php';
 require_once __DIR__ . '/../controllers/DashboardController.php';
 require_once __DIR__ . '/../controllers/RutesController.php';
 require_once __DIR__ . '/../controllers/HorariController.php';
-
 
 // Obtener la ruta y acción desde la URL
 $controllerName = $_GET['controller'] ?? 'auth';
@@ -38,8 +39,11 @@ switch ($controllerName) {
 // Llamar a la acción (método)
 if (method_exists($ctrl, $action)) {
     $ctrl->$action();
+    exit; // <--- evita que se siga ejecutando el resto del script
 } else {
-    http_response_code(404);
+    header("HTTP/1.0 404 Not Found");
     echo "Acción no encontrada";
+    exit;
 }
 
+ob_end_flush(); // Enviar contenido al navegador

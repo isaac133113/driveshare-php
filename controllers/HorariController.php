@@ -172,4 +172,42 @@ class HorariController extends BaseController {
         session_destroy();
         $this->redirect('login.php');
     }
+
+    public function editModal() {
+        $id = intval($_GET['id']);
+        $ruta = $this->horariModel->getHorariById($id, $_SESSION['user_id']);
+        if ($ruta) {
+            include __DIR__ . '/../views/dashboard/modal_edit.php';
+        }
+        exit;
+    }
+
+    public function deleteAjax() {
+        $id = intval($_POST['id']);
+        $success = $this->horariModel->deleteHorari($id, $_SESSION['user_id']);
+        echo json_encode(['success' => $success]);
+        exit;
+    }
+
+    public function updateAjax() {
+        $id = intval($_POST['id']);
+        $data = [];
+
+        // Solo agregar al array si existe en POST
+        $camposPosibles = ['data_ruta', 'hora_inici', 'hora_fi', 'origen', 'desti', 'vehicle', 'comentaris', 'plazas_disponibles'];
+        foreach ($camposPosibles as $campo) {
+            if (isset($_POST[$campo])) {
+                $data[$campo] = $_POST[$campo];
+            }
+        }
+
+        if (empty($data)) {
+            echo json_encode(['success' => false, 'message' => 'No hay campos para actualizar']);
+            exit;
+        }
+
+        $success = $this->horariModel->updateHorari($id, $_SESSION['user_id'], $data);
+        echo json_encode(['success' => $success]);
+        exit;
+    }
 }

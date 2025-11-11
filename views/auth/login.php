@@ -27,6 +27,12 @@
                                 <?php echo $error; ?>
                             </div>
                         <?php endif; ?>
+
+                        <?php if (!empty($_GET['success'])): ?>
+                            <div class="alert alert-success">
+                                <?= htmlspecialchars($_GET['success']) ?>
+                            </div>
+                        <?php endif; ?>
                         
                         <form action="../../public/index.php?controller=auth&action=login" method="post">
                             <div class="mb-3">

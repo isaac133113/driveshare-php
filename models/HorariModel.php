@@ -68,28 +68,53 @@ class HorariModel {
         );
     }
     
-    public function updateHorari($id, $userId, $data) {
-        if (!$this->validateHorariData($data)) {
-            return false;
-        }
+    // public function updateHorari($id, $userId, $data) {
+    //     if (!$this->validateHorariData($data)) {
+    //         return false;
+    //     }
         
-        return $this->dbHelper->executePrepared(
-            "UPDATE {$this->table} SET data_ruta = ?, hora_inici = ?, hora_fi = ?, origen = ?, desti = ?, vehicle = ?, comentaris = ? WHERE id = ? AND user_id = ?",
-            [
-                $data['data_ruta'], 
-                $data['hora_inici'], 
-                $data['hora_fi'], 
-                $data['origen'], 
-                $data['desti'], 
-                $data['vehicle'], 
-                $data['comentaris'],
-                $id,
-                $userId
-            ],
-            'sssssssii'
-        );
+    //     return $this->dbHelper->executePrepared(
+    //         "UPDATE {$this->table} SET data_ruta = ?, hora_inici = ?, hora_fi = ?, origen = ?, desti = ?, vehicle = ?, comentaris = ? WHERE id = ? AND user_id = ?",
+    //         [
+    //             $data['data_ruta'], 
+    //             $data['hora_inici'], 
+    //             $data['hora_fi'], 
+    //             $data['origen'], 
+    //             $data['desti'], 
+    //             $data['vehicle'], 
+    //             $data['comentaris'],
+    //             $id,
+    //             $userId
+    //         ],
+    //         'sssssssii'
+    //     );
+    // }
+
+    public function updateHorari($id, $userId, $data) {
+        if (empty($data)) return false;
+
+        $campos = [];
+        $tipos = '';
+        $valores = [];
+
+        foreach ($data as $key => $value) {
+            $campos[] = "$key = ?";
+            $tipos .= is_int($value) ? 'i' : (is_double($value) ? 'd' : 's');
+            $valores[] = $value;
+        }
+
+        // Agregar id y user_id al final
+        $camposSql = implode(', ', $campos);
+        $valores[] = $id;
+        $valores[] = $userId;
+        $tipos .= 'ii';
+
+        $sql = "UPDATE horaris_rutes SET $camposSql WHERE id = ? AND user_id = ?";
+
+        // Ejecutar con el helper pasando parámetros y tipos
+        return $this->dbHelper->executePrepared($sql, $valores, $tipos);
     }
-    
+
     public function deleteHorari($id, $userId) {
         return $this->dbHelper->executePrepared(
             "DELETE FROM {$this->table} WHERE id = ? AND user_id = ?",

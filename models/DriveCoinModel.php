@@ -53,9 +53,11 @@ class DriveCoinModel {
             $stmt->bind_param("di", $amount, $userId);
             $stmt->execute();
 
-            $stmt2 = $this->conn->prepare("INSERT INTO drivecoins_transactions (user_id, transaction_type, amount, description) VALUES (?, ?, ?, ?)");
+            $stmt2 = $this->conn->prepare(
+                "INSERT INTO drivecoins_transactions (user_id, transaction_type, amount, description) VALUES (?, ?, ?, ?)"
+            );
             $type = self::TRANSACTION_BONUS;
-            $stmt2->bind_param("idss", $userId, $amount, $type, $description);
+            $stmt2->bind_param("isds", $userId, $type, $amount, $description);
             $stmt2->execute();
 
             $this->conn->commit();
@@ -76,9 +78,11 @@ class DriveCoinModel {
             $stmt->bind_param("di", $amount, $userId);
             $stmt->execute();
 
-            $stmt2 = $this->conn->prepare("INSERT INTO drivecoins_transactions (user_id, transaction_type, amount, description) VALUES (?, ?, ?, ?)");
+            $stmt2 = $this->conn->prepare(
+                "INSERT INTO drivecoins_transactions (user_id, transaction_type, amount, description) VALUES (?, ?, ?, ?)"
+            );
             $type = self::TRANSACTION_RESERVATION;
-            $stmt2->bind_param("idss", $userId, $amount, $type, $description);
+            $stmt2->bind_param("isds", $userId, $type, $amount, $description);
             $stmt2->execute();
 
             $this->conn->commit();
