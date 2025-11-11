@@ -111,6 +111,15 @@ $userPreferences = $userPreferences ?? [
                                     <small class="text-muted">Saldo de la teva compte</small>
                                 </div>
                             </div>
+                            <div class="col-md-6 mb-3">
+                                <div class="border rounded-3 p-3 bg-warning bg-opacity-25">
+                                    <small class="text-muted"><i class="bi bi-coin me-1"></i>DriveCoins</small>
+                                    <div class="fw-bold text-warning">
+                                        <span id="driveCoinsBalance"><?php echo number_format($driveCoinsBalance, 2, ',', '.'); ?></span> DC
+                                    </div>
+                                    <small class="text-muted">Monedes del sistema</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -126,17 +135,17 @@ $userPreferences = $userPreferences ?? [
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <a href="/public/index.php?controller=horaris&action=index" class="btn btn-outline-primary btn-lg rounded-3">
-                                        <i class="bi bi-calendar-week me-2"></i>Gestionar Horaris
+                                    <a href="/public/index.php?controller=horaris&action=index" class="btn btn-outline-secondary btn-lg rounded-3">
+                                        <i class="bi bi-calendar-week me-2"></i>Gestionar Rutes
                                         <small class="d-block text-muted">Organitza les teves rutes</small>
                                     </a>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <a href="/public/index.php?controller=rutes&action=index" class="btn btn-outline-warning btn-lg rounded-3">
-                                        <i class="bi bi-map me-2"></i>Veure Rutes
-                                        <small class="d-block text-muted">Rutes d'altres usuaris</small>
+                                    <a href="/public/index.php?controller=vehicle&action=index" class="btn btn-outline-primary btn-lg rounded-3">
+                                        <i class="bi bi-car-front me-2"></i>Els Meus Vehicles
+                                        <small class="d-block text-muted">Gestiona els teus vehicles</small>
                                     </a>
                                 </div>
                             </div>
@@ -182,9 +191,9 @@ $userPreferences = $userPreferences ?? [
                             </div>
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <button class="btn btn-outline-secondary btn-lg rounded-3" onclick="viewReservations()">
-                                        <i class="bi bi-clipboard-check me-2"></i>Mis Reservas
-                                        <small class="d-block text-muted">Historial y reservas activas</small>
+                                    <button type="button" class="btn btn-outline-success btn-lg rounded-3" data-bs-toggle="modal" data-bs-target="#newRouteModal">
+                                        <i class="bi bi-map me-2"></i>Nova Ruta
+                                        <small class="d-block text-muted">Programa un nou viatge</small>
                                     </button>
                                 </div>
                             </div>
@@ -349,13 +358,23 @@ $userPreferences = $userPreferences ?? [
                                                         <td><?php echo number_format($ruta['precio_euros'], 2); ?>€</td>
                                                         <td>
                                                             <?php
-                                                            $badgeClass = match($ruta['estado']) {
-                                                                1 => 'bg-warning',   // Pendent
-                                                                2 => 'bg-success',   // Confirmada
-                                                                3 => 'bg-info',      // Completada
-                                                                4 => 'bg-danger',    // Cancel·lada
-                                                                default => 'bg-secondary'
-                                                            };
+                                                            switch($ruta['estado']) {
+                                                                case 1:
+                                                                    $badgeClass = 'bg-warning';   // Pendent
+                                                                    break;
+                                                                case 2:
+                                                                    $badgeClass = 'bg-success';   // Confirmada
+                                                                    break;
+                                                                case 3:
+                                                                    $badgeClass = 'bg-info';      // Completada
+                                                                    break;
+                                                                case 4:
+                                                                    $badgeClass = 'bg-danger';    // Cancel·lada
+                                                                    break;
+                                                                default:
+                                                                    $badgeClass = 'bg-secondary';
+                                                                    break;
+                                                            }
                                                             $estados = (new HorariRutaModel())->getEstados();
                                                             ?>
                                                             <span class="badge <?php echo $badgeClass; ?>">

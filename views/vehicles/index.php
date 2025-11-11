@@ -147,7 +147,7 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form id="vehicleForm" method="POST" action="../../controllers/VehicleController.php">
+                <form id="vehicleForm" method="POST" action="../../public/index.php?controller=vehicle&action=index">
                     <div class="modal-body">
                         <input type="hidden" name="action" value="save">
                         <input type="hidden" name="id" id="vehicleId">
@@ -210,7 +210,7 @@
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form id="imageForm" method="POST" enctype="multipart/form-data" action="../../controllers/VehicleController.php">
+                <form action="../../public/index.php?controller=vehicle&action=index" method="POST" enctype="multipart/form-data">
                     <div class="modal-body">
                         <input type="hidden" name="action" value="upload_image">
                         <input type="hidden" name="vehicle_id" id="imageVehicleId">

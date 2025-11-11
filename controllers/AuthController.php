@@ -9,7 +9,7 @@ class AuthController extends BaseController {
     }
     
     public function login() {
-        $error = '';
+       
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $this->sanitizeInput($_POST['email']);
@@ -40,7 +40,7 @@ class AuthController extends BaseController {
         include __DIR__ . '/../views/auth/login.php';
     }
 
-    public function register() {        
+    public function register() { 
         $errors = [];
         $success = false;
         
