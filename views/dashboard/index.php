@@ -104,19 +104,11 @@ $userPreferences = $userPreferences ?? [
                             </div>
                             <div class="col-md-6 mb-3">
                                 <div class="border rounded-3 p-3 bg-success bg-opacity-25">
-                                    <small class="text-muted"><i class="bi bi-coin me-1"></i>DriveCoins Disponibles</small>
+                                    <small class="text-muted"><i class="bi bi-wallet2 me-1"></i>Saldo Disponible</small>
                                     <div class="fw-bold text-success">
-                                        <span id="userDriveCoins"><i class="bi bi-coin"></i> <?php echo number_format($driveCoinsBalance, 0, ',', '.'); ?> DC</span>
+                                        <span id="userSaldo"><?php echo number_format($userPreferences['saldo'], 2, ',', '.'); ?> €</span>
                                     </div>
-                                    <small class="text-muted">Moneda virtual DriveShare</small>
-                                </div>
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <div class="border rounded-3 p-3 bg-info bg-opacity-25">
-                                    <small class="text-muted"><i class="bi bi-speedometer2 me-1"></i>Quilòmetres Recorreguts</small>
-                                    <div class="fw-bold text-info">
-                                        1,847 km
-                                    </div>
+                                    <small class="text-muted">Saldo de la teva compte</small>
                                 </div>
                             </div>
                         </div>
@@ -132,7 +124,7 @@ $userPreferences = $userPreferences ?? [
                     </div>
                     <div class="card-body p-4">
                         <div class="row g-3">
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="d-grid">
                                     <a href="/public/index.php?controller=horaris&action=index" class="btn btn-outline-secondary btn-lg rounded-3">
                                         <i class="bi bi-calendar-week me-2"></i>Gestionar Rutes
@@ -140,15 +132,7 @@ $userPreferences = $userPreferences ?? [
                                     </a>
                                 </div>
                             </div>
-                            <div class="col-md-4">
-                                <div class="d-grid">
-                                    <a href="/public/index.php?controller=rutes&action=index" class="btn btn-outline-warning btn-lg rounded-3">
-                                        <i class="bi bi-map me-2"></i>Veure Rutes
-                                        <small class="d-block text-muted">Veure rutes d'altres usuaris</small>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-md-4">
+                            <div class="col-md-6">
                                 <div class="d-grid">
                                     <a href="/public/index.php?controller=vehicle&action=index" class="btn btn-outline-primary btn-lg rounded-3">
                                         <i class="bi bi-car-front me-2"></i>Els Meus Vehicles
@@ -411,7 +395,6 @@ $userPreferences = $userPreferences ?? [
     <script>
         // Rent Vehicle Function
         function rentVehicle(vehicleName, pricePerHour) {
-            window.userDriveCoins = <?php echo $driveCoinsBalance; ?>; // Saldo real de DriveCoins (variable global)
             const currentHour = new Date().getHours();
             
             if (currentHour >= 22 || currentHour < 6) {
@@ -419,11 +402,8 @@ $userPreferences = $userPreferences ?? [
                 return;
             }
             
-            // Convertir precio por hora a DriveCoins (1€ = 10 DC)
-            const priceInDriveCoins = pricePerHour * 10;
-            
-            // Mostrar modal de alquiler
-            showRentModal(vehicleName, priceInDriveCoins, window.userDriveCoins);
+            // Mostrar modal de alquiler con precio en euros
+            showRentModal(vehicleName, pricePerHour);
         }
         
         // Show Rental Success
@@ -442,7 +422,7 @@ $userPreferences = $userPreferences ?? [
                             <p><strong>Codi de reserva:</strong> ${rentalCode}</p>
                             <p><strong>Inici:</strong> ${startTime.toLocaleString()}</p>
                             <p><strong>Fi:</strong> ${endTime.toLocaleString()}</p>
-                            <p><strong>Cost:</strong> <i class="bi bi-coin"></i> ${cost.toFixed(0)} DC</p>
+                            <p><strong>Cost:</strong> ${cost.toFixed(2)} €</p>
                         </div>
                     </div>
                     <div class="alert alert-info mt-3">
@@ -457,27 +437,6 @@ $userPreferences = $userPreferences ?? [
         function showMyRentals() {
             const modal = new bootstrap.Modal(document.getElementById('rentalHistoryModal'));
             modal.show();
-        }
-        
-        // DriveCoins Interactive Functions
-        function buyDriveCoins() {
-            window.location.href = '../../comprar-drivecoins.php';
-        }
-        
-        // Update DriveCoins balance
-        function updateDriveCoinsBalance() {
-            fetch('../../controllers/DriveCoinController.php?action=get_balance')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        document.getElementById('userDriveCoins').innerHTML = 
-                            `<i class="bi bi-coin"></i> ${data.formatted_balance}`;
-                        
-                        // Update global variable for other functions
-                        window.userDriveCoins = data.balance;
-                    }
-                })
-                .catch(error => console.error('Error updating DriveCoins balance:', error));
         }
         
         // Find Nearest Car
@@ -817,13 +776,14 @@ $userPreferences = $userPreferences ?? [
             modal.show();
         }
 
-        function showRentModal(vehicleName, pricePerHourDC, userDriveCoins) {
+        function showRentModal(vehicleName, pricePerHour) {
+            const userSaldo = <?php echo $userPreferences['saldo']; ?>; // Saldo real en euros
             const content = `
                 <div class="card">
                     <div class="card-body">
                         <h5><i class="bi bi-car-front me-2"></i>${vehicleName}</h5>
-                        <p class="text-muted">Preu: <i class="bi bi-coin"></i> ${pricePerHourDC} DC/hora</p>
-                        <p class="text-success">DriveCoins disponibles: <i class="bi bi-coin"></i> ${userDriveCoins.toFixed(0)} DC</p>
+                        <p class="text-muted">Preu: ${pricePerHour.toFixed(2)} €/hora</p>
+                        <p class="text-success">Saldo disponible: ${userSaldo.toFixed(2)} €</p>
                         
                         <div class="mb-3">
                             <label for="rentHours" class="form-label">Quantes hores vols llogar?</label>
@@ -832,10 +792,10 @@ $userPreferences = $userPreferences ?? [
                         
                         <div class="mb-3">
                             <label class="form-label">Cost calculat:</label>
-                            <div class="h5 text-primary" id="calculatedCost"><i class="bi bi-coin"></i> ${pricePerHourDC} DC</div>
+                            <div class="h5 text-primary" id="calculatedCost">${pricePerHour.toFixed(2)} €</div>
                         </div>
                         
-                        <button class="btn btn-primary w-100" onclick="confirmRental('${vehicleName}', ${pricePerHourDC}, ${userDriveCoins})">
+                        <button class="btn btn-primary w-100" onclick="confirmRental('${vehicleName}', ${pricePerHour}, ${userSaldo})">
                             <i class="bi bi-check-circle me-1"></i>Confirmar Lloguer
                         </button>
                     </div>
@@ -849,37 +809,35 @@ $userPreferences = $userPreferences ?? [
             // Actualizar costo en tiempo real
             document.getElementById('rentHours').addEventListener('input', function() {
                 const hours = this.value;
-                const cost = (parseFloat(pricePerHourDC) * parseFloat(hours)).toFixed(0);
-                document.getElementById('calculatedCost').innerHTML = '<i class="bi bi-coin"></i> ' + cost + ' DC';
+                const cost = (parseFloat(pricePerHour) * parseFloat(hours)).toFixed(2);
+                document.getElementById('calculatedCost').innerHTML = cost + ' €';
             });
         }
 
-        function confirmRental(vehicleName, pricePerHourDC, userDriveCoins) {
+        function confirmRental(vehicleName, pricePerHour, userSaldo) {
             const hours = document.getElementById('rentHours').value;
-            const totalCost = parseFloat(pricePerHourDC) * parseFloat(hours);
+            const totalCost = parseFloat(pricePerHour) * parseFloat(hours);
             
-            if (totalCost > userDriveCoins) {
-                showInfoModal('DriveCoins Insuficients', `
+            if (totalCost > userSaldo) {
+                showInfoModal('Saldo Insuficient', `
                     <div class="text-center">
                         <i class="bi bi-exclamation-triangle text-warning display-4"></i>
-                        <h5 class="mt-3">No tens suficients DriveCoins!</h5>
+                        <h5 class="mt-3">No tens suficient saldo!</h5>
                         <div class="card mt-3">
                             <div class="card-body">
-                                <p><strong>Cost:</strong> <i class="bi bi-coin"></i> ${totalCost.toFixed(0)} DC</p>
-                                <p><strong>DriveCoins disponibles:</strong> <i class="bi bi-coin"></i> ${userDriveCoins.toFixed(0)} DC</p>
-                                <p class="text-danger"><strong>Necessites:</strong> <i class="bi bi-coin"></i> ${(totalCost - userDriveCoins).toFixed(0)} DC més</p>
+                                <p><strong>Cost:</strong> ${totalCost.toFixed(2)} €</p>
+                                <p><strong>Saldo disponible:</strong> ${userSaldo.toFixed(2)} €</p>
+                                <p class="text-danger"><strong>Necessites:</strong> ${(totalCost - userSaldo).toFixed(2)} € més</p>
                             </div>
                         </div>
-                        <a href="../../comprar-drivecoins.php" class="btn btn-primary mt-3">Comprar DriveCoins</a>
+                        <div class="alert alert-info mt-3">
+                            <i class="bi bi-info-circle"></i> Contacta amb l'administració per recarregar el teu saldo
+                        </div>
                     </div>
                 `);
             } else {
                 bootstrap.Modal.getInstance(document.getElementById('rentModal')).hide();
                 setTimeout(() => showRentalSuccess(vehicleName, hours, totalCost), 300);
-                
-                // Actualizar saldo (simulado)
-                window.userDriveCoins -= totalCost;
-                updateDriveCoinsBalance();
             }
         }
 

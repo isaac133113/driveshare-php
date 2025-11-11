@@ -37,6 +37,11 @@ abstract class BaseController {
         return ['message' => $message, 'type' => $type];
     }
     
+    protected function setFlashMessage($message, $type = 'info') {
+        $_SESSION['flash_message'] = $message;
+        $_SESSION['flash_type'] = $type;
+    }
+    
     protected function getCurrentUser() {
         if (isset($_SESSION['user_id'])) {
             return $this->userModel->getUserById($_SESSION['user_id']);
