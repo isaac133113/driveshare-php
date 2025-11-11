@@ -374,7 +374,7 @@ $allHoraris = $allHoraris ?? [];
                             <div>
                                 <h2 class="fw-bold text-dark mb-1">
                                     <i class="bi bi-calendar-week text-primary me-2"></i>
-                                    Gestió d'Horaris i Rutes
+                                    Gestió i Rutes
                                 </h2>
                                 <p class="text-muted mb-0">
                                     Organitza els teus desplaçaments i consulta els d'altres usuaris
