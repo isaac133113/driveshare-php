@@ -1,6 +1,7 @@
 <?php
 require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/ChatModel.php';
+require_once __DIR__ . '/../config/Database.php';
 
 class ChatController extends BaseController {
     private $chatModel;
@@ -214,7 +215,102 @@ class ChatController extends BaseController {
             'count' => $count
         ]);
     }
+    
+    /**
+     * Llamada para startHorariChat desde el sistema de enrutamiento
+     */
+    public function startHorariChat() {
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            echo json_encode(['success' => false, 'message' => 'Método no permitido']);
+            return;
+        }
+        
+        $targetUserId = intval($_POST['target_user_id'] ?? 0);
+        $horariId = intval($_POST['horari_id'] ?? 0);
+        $message = trim($_POST['message'] ?? '');
+        $action = $_POST['action'] ?? '';
+        
+        if ($action !== 'start_horari_chat' || !$targetUserId || !$horariId || empty($message)) {
+            echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+            return;
+        }
+        
+        // No permitir conversación consigo mismo
+        if ($targetUserId == $_SESSION['user_id']) {
+            echo json_encode(['success' => false, 'message' => 'No puedes chatear contigo mismo']);
+            return;
+        }
+        
+        try {
+            // Obtener información del horario para contexto
+            $horariInfo = $this->getHorariInfo($horariId);
+            if (!$horariInfo) {
+                echo json_encode(['success' => false, 'message' => 'Horario no encontrado']);
+                return;
+            }
+            
+            // Crear o obtener conversación (simulando un vehículo ficticio para el horario)
+            // En lugar de usar un vehículo real, usaremos el ID del horario como referencia
+            $conversationId = $this->chatModel->createOrGetConversationForHorari(
+                $horariId, 
+                $_SESSION['user_id'], 
+                $targetUserId
+            );
+            
+            if (!$conversationId) {
+                echo json_encode(['success' => false, 'message' => 'Error al crear conversación']);
+                return;
+            }
+            
+            // Añadir contexto del horario al mensaje con identificador único
+            $contextMessage = "📍 Horari: {$horariInfo['origen']} → {$horariInfo['desti']} [horari_{$horariId}]\n";
+            $contextMessage .= "📅 Data: " . date('d/m/Y', strtotime($horariInfo['data_ruta'])) . "\n";
+            $contextMessage .= "⏰ Horari: " . date('H:i', strtotime($horariInfo['hora_inici'])) . " - " . date('H:i', strtotime($horariInfo['hora_fi'])) . "\n\n";
+            $fullMessage = $contextMessage . $message;
+            
+            // Enviar mensaje
+            $messageId = $this->chatModel->sendMessage($conversationId, $_SESSION['user_id'], $fullMessage);
+            
+            if ($messageId) {
+                echo json_encode([
+                    'success' => true, 
+                    'message' => 'Mensaje enviado correctamente',
+                    'conversation_id' => $conversationId
+                ]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Error al enviar mensaje']);
+            }
+            
+        } catch (Exception $e) {
+            error_log("Error in startHorariChat: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
+        }
+    }
+    
+    /**
+     * Obtener información del horario
+     */
+    private function getHorariInfo($horariId) {
+        try {
+            $conn = Database::getInstance()->getConnection();
+            $stmt = $conn->prepare("
+                SELECT hr.*, u.nom, u.cognoms 
+                FROM horaris_rutes hr 
+                JOIN usuaris u ON hr.user_id = u.id 
+                WHERE hr.id = ?
+            ");
+            $stmt->bind_param("i", $horariId);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            return $result->fetch_assoc();
+        } catch (Exception $e) {
+            error_log("Error getting horari info: " . $e->getMessage());
+            return null;
+        }
+    }
 }
+
 
 // Manejo de rutas
 if (basename($_SERVER['PHP_SELF']) === 'ChatController.php') {
@@ -237,6 +333,9 @@ if (basename($_SERVER['PHP_SELF']) === 'ChatController.php') {
             break;
         case 'unread-count':
             $controller->getUnreadCount();
+            break;
+        case 'startHorariChat':
+            $controller->startHorariChat();
             break;
         default:
             $controller->index();

@@ -50,9 +50,9 @@
                                     <!-- Imagen del vehículo -->
                                     <?php if (!empty($vehicle['images'])): ?>
                                         <img src="<?php echo htmlspecialchars('/' . $vehicle['images'][0]); ?>" 
-                                                class="card-img-top rounded-top-4"
-                                                alt="<?php echo htmlspecialchars($vehicle['marca_model']); ?>"
-                                                style="height: 200px; object-fit: cover;">
+                                             class="card-img-top rounded-top-4"
+                                             alt="<?php echo htmlspecialchars($vehicle['marca_model']); ?>"
+                                             style="height: 200px; object-fit: cover;">
                                     <?php else: ?>
                                         <div class="bg-light rounded-top-4 d-flex align-items-center justify-content-center" style="height: 200px;">
                                             <i class="bi bi-car-front display-1 text-muted"></i>

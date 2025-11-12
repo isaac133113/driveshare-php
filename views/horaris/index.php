@@ -9,25 +9,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="../../dashboard.php">
-                <i class="bi bi-car-front-fill"></i> DriveShare
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="../../dashboard.php">
-                    <i class="bi bi-speedometer2"></i> Dashboard
-                </a>
-                <a class="nav-link" href="../controllers/AuthController.php?action=profile">
-                    <i class="bi bi-person"></i> Perfil
-                </a>
-                <a class="nav-link" href="/controllers/AuthController.php?action=logout">
-                    <i class="bi bi-box-arrow-right"></i> Sortir
-                </a>
-            </div>
-        </div>
-    </nav>
+    <?php include '../templates/navbar.php'; ?>
 
     <div class="container py-5">
         <div class="row justify-content-center">

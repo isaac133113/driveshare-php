@@ -51,30 +51,7 @@
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
-        <div class="container">
-            <a class="navbar-brand" href="../dashboard.php">
-                <i class="bi bi-car-front-fill"></i> DriveShare
-            </a>
-            <div class="navbar-nav ms-auto">
-                <a class="nav-link" href="../dashboard.php">
-                    <i class="bi bi-house"></i> Inici
-                </a>
-                <a class="nav-link" href="../ver-coches.php">
-                    <i class="bi bi-car-front"></i> Vehicles
-                </a>
-                <a class="nav-link active" href="ChatController.php">
-                    <i class="bi bi-chat-dots"></i> Xat
-                    <?php if ($unreadCount > 0): ?>
-                        <span class="badge bg-danger ms-1"><?php echo $unreadCount; ?></span>
-                    <?php endif; ?>
-                </a>
-                <a class="nav-link" href="../logout.php">
-                    <i class="bi bi-box-arrow-right"></i> Sortir
-                </a>
-            </div>
-        </div>
-    </nav>
+    <?php include __DIR__ . '/../templates/navbar.php'; ?>
 
     <div class="container-fluid mt-4">
         <div class="row">
