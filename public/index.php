@@ -1,6 +1,4 @@
 <?php
-ob_start(); // Inicia buffer de salida
-
 session_start();
 
 // Buffer de salida para evitar problemas de headers
@@ -37,33 +35,22 @@ switch ($controllerName) {
         $ctrl = new HorariController();
         break;
     default:
-        // Limpiar buffer antes de establecer headers
         ob_end_clean();
         http_response_code(404);
         echo "Controlador no encontrado: $controllerName";
         exit;
 }
 
-// Llamar a la acción (método)
+// Ejecutar la acción del controlador
 if (method_exists($ctrl, $action)) {
     $ctrl->$action();
-    exit; // <--- evita que se siga ejecutando el resto del script
 } else {
-    // Limpiar buffer antes de establecer headers
     ob_end_clean();
     http_response_code(404);
-    echo "Acción no encontrada: $action en controlador $controllerName";
-    
-    // Mostrar métodos disponibles para debug
-    echo "<br><br>Métodos disponibles en " . get_class($ctrl) . ":<br>";
-    $methods = get_class_methods($ctrl);
-    foreach ($methods as $method) {
-        if (!in_array($method, ['__construct', '__destruct'])) {
-            echo "- $method<br>";
-        }
-    }
+    echo "Acción no encontrada: $action en el controlador $controllerName";
+    exit;
 }
 
-// Enviar buffer si no se ha limpiado
 ob_end_flush();
+
 

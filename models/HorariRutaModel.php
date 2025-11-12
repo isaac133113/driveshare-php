@@ -87,7 +87,7 @@ class HorariRutaModel {
     public function getAllRutes() {
         $sql = "SELECT hr.*, 
                     v.marca_model AS vehicle_name,
-                    v.tipus AS tipus,  -- <--- aquí traes el tipo
+                    v.tipus AS tipus,
                     vi.url AS vehicle_image,
                     COALESCE(hr.plazas_disponibles - SUM(r.plazas), hr.plazas_disponibles) AS plazas_restantes
                 FROM horaris_rutes hr
@@ -99,7 +99,17 @@ class HorariRutaModel {
                 ORDER BY hr.data_ruta DESC, hr.hora_inici ASC";
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute();
+        
+        if ($stmt === false) {
+            error_log("Error preparing getAllRutes statement: " . $this->db->error);
+            return [];
+        }
+        
+        if (!$stmt->execute()) {
+            error_log("Error executing getAllRutes statement: " . $stmt->error);
+            return [];
+        }
+        
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 

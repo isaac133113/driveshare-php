@@ -33,6 +33,32 @@ class ReservaModel {
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
+    public function getUserReservationsWithDetails($userId) {
+        $sql = "SELECT r.*, hr.origen, hr.desti, hr.data_ruta, hr.hora_inici, hr.hora_fi, 
+                       hr.vehicle, hr.comentaris,
+                       u.nom, u.cognoms, u.email
+                FROM reservas r
+                JOIN horaris_rutes hr ON r.ruta_id = hr.id
+                JOIN usuaris u ON hr.user_id = u.id
+                WHERE r.user_id = ?
+                ORDER BY hr.data_ruta DESC, hr.hora_inici ASC";
+        $stmt = $this->db->prepare($sql);
+        
+        if ($stmt === false) {
+            error_log("Error preparing statement: " . $this->db->error);
+            return [];
+        }
+        
+        $stmt->bind_param("i", $userId);
+        
+        if (!$stmt->execute()) {
+            error_log("Error executing statement: " . $stmt->error);
+            return [];
+        }
+        
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
     public function getReservedSeats($rutaId) {
         $sql = "SELECT SUM(plazas) as total_reservadas FROM reservas WHERE ruta_id = ?";
         $stmt = $this->db->prepare($sql);

@@ -1,21 +1,22 @@
 <?php
+require_once __DIR__ . '/BaseController.php';
 require_once __DIR__ . '/../models/HorariRutaModel.php';
 require_once __DIR__ . '/../models/ReservaModel.php';
 require_once __DIR__ . '/../models/DriveCoinModel.php';
 require_once __DIR__ . '/../models/UserModel.php';
+require_once __DIR__ . '/../models/VehicleModel.php';
 define('DRIVECOIN_CONVERSION_RATE', 1); // 1€ = 1 DC
 
-class RutesController {
+class RutesController extends BaseController {
     private $rutaModel;
     private $reservaModel;
     private $driveCoinModel;
-    private $userModel;
 
     public function __construct() {
+        parent::__construct();
         $this->rutaModel = new HorariRutaModel();
         $this->reservaModel = new ReservaModel();
         $this->driveCoinModel = new DriveCoinModel();
-        $this->userModel = new UserModel();
     }
 
     public function index() {
@@ -75,7 +76,7 @@ class RutesController {
             if (!$ruta) {
                 $_SESSION['message'] = "Ruta no encontrada.";
                 $_SESSION['messageType'] = "danger";
-                header("Location: ../../index.php?controller=rutes&action=index");
+                header("Location: " . BASE_URL . "/public/index.php?controller=rutes&action=index");
                 exit;
             }
 
@@ -90,7 +91,7 @@ class RutesController {
             if ($plazas > $plazasRestantes) {
                 $_SESSION['message'] = "No hay suficientes plazas disponibles.";
                 $_SESSION['messageType'] = "danger";
-                header("Location: ../../index.php?controller=rutes&action=index");
+                header("Location: " . BASE_URL . "/public/index.php?controller=rutes&action=index");
                 exit;
             }
 
@@ -104,7 +105,7 @@ class RutesController {
                 if (!$success) {
                     $_SESSION['message'] = "Saldo insuficiente de DriveCoins.";
                     $_SESSION['messageType'] = "danger";
-                    header("Location: ../../index.php?controller=rutes&action=index");
+                    header("Location: " . BASE_URL . "/public/index.php?controller=rutes&action=index");
                     exit;
                 }
 
@@ -125,7 +126,7 @@ class RutesController {
                 if ($usuario['saldo'] < $totalEurosGastados) {
                     $_SESSION['message'] = "Saldo insuficiente.";
                     $_SESSION['messageType'] = "danger";
-                    header("Location: ../../index.php?controller=rutes&action=index");
+                    header("Location: " . BASE_URL . "/public/index.php?controller=rutes&action=index");
                     exit;
                 }
 
@@ -150,7 +151,7 @@ class RutesController {
                 $_SESSION['messageType'] = "success";
             }
 
-            header("Location: ../../index.php?controller=rutes&action=index");
+            header("Location: " . BASE_URL . "/public/index.php?controller=rutes&action=index");
             exit;
         }
     }

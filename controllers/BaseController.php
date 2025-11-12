@@ -11,20 +11,20 @@ abstract class BaseController {
     
     protected function checkSession() {
         if (!isset($_SESSION['user_id'])) {
-            $this->redirect('login.php');
+            $this->redirect(BASE_URL . '/public/index.php?controller=auth&action=login');
         }
     }
     
     protected function redirect($url) {
-        // Si la URL no empieza con http, usar la URL base configurada
-        if (!preg_match('/^https?:\/\//', $url)) {
-            // Si es una URL relativa, construir desde BASE_URL
-            if (strpos($url, 'index.php') === 0 || strpos($url, '?') === 0) {
-                $url = BASE_URL . '/index.php' . (strpos($url, '?') === 0 ? $url : '?' . substr($url, strlen('index.php')));
-            } elseif (strpos($url, '/') !== 0) {
-                $url = BASE_URL . '/' . $url;
+        // No agregar BASE_URL si ya es una URL completa
+        if (!preg_match('/^https?:\/\//', $url) && strpos($url, BASE_URL) !== 0) {
+            // Si la URL no comienza con /, agregarla
+            if (strpos($url, '/') !== 0) {
+                $url = '/' . $url;
             }
+            $url = BASE_URL . $url;
         }
+        
         header('Location: ' . $url);
         exit;
     }
@@ -77,7 +77,7 @@ abstract class BaseController {
     
     protected function requireAuth() {
         if (!$this->isAuthenticated()) {
-            $this->redirect('login.php');
+            $this->redirect(BASE_URL . '/public/index.php?controller=auth&action=login');
         }
     }
     

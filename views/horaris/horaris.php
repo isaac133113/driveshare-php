@@ -5,6 +5,7 @@ $messageType = $messageType ?? '';
 $editingHorari = $editingHorari ?? null;
 $myHoraris = $myHoraris ?? [];
 $allHoraris = $allHoraris ?? [];
+$myReservations = $myReservations ?? [];
 ?>
 
 <!DOCTYPE html>
@@ -221,37 +222,87 @@ $allHoraris = $allHoraris ?? [];
                 <div class="card border-0 shadow rounded-4">
                     <div class="card-header bg-dark text-white">
                         <h5 class="mb-0">
-                            <i class="bi bi-bookmark-check me-2"></i>Rutes reservades
+                            <i class="bi bi-bookmark-check me-2"></i>Les teves Rutes reservades
                         </h5>
                     </div>
-                    <div class="card-body text-center py-5">
-                        <div class="mb-4">
-                            <i class="bi bi-map display-1 text-warning mb-3"></i>
-                            <h3 class="text-dark mb-3">Explora i reserva rutes</h3>
-                            <p class="text-muted mb-4">
-                                Aquí podràs veure i reservar rutes d'altres usuaris de la comunitat DriveShare.
-                                <br>
-                                Troba el desplaçament perfecte per a les teves necessitats!
-                            </p>
-                        </div>
-                        
-                        <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                            <a href="../../index.php?controller=rutes&action=index" class="btn btn-warning btn-lg px-4 me-md-2">
-                                <i class="bi bi-search me-2"></i>
-                                Veure rutes disponibles
-                            </a>
-                            <a href="../../index.php?controller=dashboard&action=index" class="btn btn-outline-secondary btn-lg px-4">
-                                <i class="bi bi-bookmark-check me-2"></i>
-                                Les meves reserves
-                            </a>
-                        </div>
-                        
-                        <div class="mt-4">
-                            <small class="text-muted">
-                                <i class="bi bi-info-circle me-1"></i>
-                                Utilitza els filtres per trobar rutes per origen, destinació, data i tipus de vehicle
-                            </small>
-                        </div>
+                    <div class="card-body p-0">
+                        <?php if (isset($myReservations) && count($myReservations) > 0): ?>
+                            <div class="table-responsive">
+                                <table id="reservedHorarisTable" class="table table-hover mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Data</th>
+                                            <th>Horari</th>
+                                            <th>Ruta</th>
+                                            <th>Vehicle</th>
+                                            <th>Conductor</th>
+                                            <th>Places reservades</th>
+                                            <th>Comentaris</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($myReservations as $reservation): ?>
+                                            <tr class="horari-row" 
+                                                data-date="<?php echo $reservation['data_ruta']; ?>"
+                                                data-vehicle="<?php echo htmlspecialchars($reservation['vehicle']); ?>"
+                                                data-origen="<?php echo htmlspecialchars($reservation['origen']); ?>"
+                                                data-desti="<?php echo htmlspecialchars($reservation['desti']); ?>"
+                                                data-user="<?php echo htmlspecialchars($reservation['nom'] . ' ' . $reservation['cognoms']); ?>"
+                                                data-tab="reserved">
+                                                <td>
+                                                    <span class="badge bg-info">
+                                                        <?php echo date('d/m/Y', strtotime($reservation['data_ruta'])); ?>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <small class="text-muted">
+                                                        <?php echo date('H:i', strtotime($reservation['hora_inici'])); ?> - 
+                                                        <?php echo date('H:i', strtotime($reservation['hora_fi'])); ?>
+                                                    </small>
+                                                </td>
+                                                <td>
+                                                    <strong><?php echo htmlspecialchars($reservation['origen']); ?></strong>
+                                                    <i class="bi bi-arrow-right mx-1"></i>
+                                                    <strong><?php echo htmlspecialchars($reservation['desti']); ?></strong>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-secondary">
+                                                        <?php echo htmlspecialchars($reservation['vehicle']); ?>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex align-items-center">
+                                                        <i class="bi bi-person-circle me-2"></i>
+                                                        <div>
+                                                            <div class="fw-semibold"><?php echo htmlspecialchars($reservation['nom'] . ' ' . $reservation['cognoms']); ?></div>
+                                                            <small class="text-muted"><?php echo htmlspecialchars($reservation['email']); ?></small>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <span class="badge bg-success">
+                                                        <?php echo $reservation['plazas']; ?> places
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <small><?php echo htmlspecialchars($reservation['comentaris']); ?></small>
+                                                </td>
+                                            </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        <?php else: ?>
+                            <div class="text-center py-5">
+                                <i class="bi bi-bookmark-x text-muted display-4"></i>
+                                <h5 class="text-muted mt-3">No tens cap ruta reservada</h5>
+                                <p class="text-muted mb-4">Explora les rutes disponibles i reserva la que millor s'adapti a les teves necessitats</p>
+                                <a href="../../public/index.php?controller=rutes&action=index" class="btn btn-warning btn-lg px-4">
+                                    <i class="bi bi-search me-2"></i>
+                                    Veure rutes disponibles
+                                </a>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -543,8 +594,8 @@ $allHoraris = $allHoraris ?? [];
             // Inicializar DataTable para Els meus Horaris
             initMyHorarisTable();
             
-            // Inicializar DataTable para Tots els Horaris
-            // initAllHorarisTable(); // Commented out as table was replaced with redirection interface
+            // Inicializar DataTable para Rutes reservades
+            initReservedHorarisTable();
         }
         
         function initMyHorarisTable() {
@@ -636,24 +687,24 @@ $allHoraris = $allHoraris ?? [];
             return dataTable;
         }
         
-        function initAllHorarisTable() {
-            const table = $('#allHorarisTable');
+        function initReservedHorarisTable() {
+            const table = $('#reservedHorarisTable');
             if (table.length === 0) {
-                console.log('❌ Tabla allHorarisTable no encontrada');
+                console.log('❌ Tabla reservedHorarisTable no encontrada');
                 return;
             }
             
-            // Configuración de DataTables para Rutes reservades (commented out - now using redirection interface)
+            // Configuración de DataTables para Rutes reservades
             const dataTable = table.DataTable({
                 // Idioma en catalán/español
                 language: {
                     search: "🔖 Buscar en rutes reservades:",
                     lengthMenu: "📄 Mostrar _MENU_ rutes per pàgina",
-                    info: "📊 Mostrant _START_ a _END_ de _TOTAL_ rutes de la comunitat",
+                    info: "📊 Mostrant _START_ a _END_ de _TOTAL_ rutes reservades",
                     infoEmpty: "🚧 No hi ha rutes per mostrar",
                     infoFiltered: "(filtrat de _MAX_ rutes totals)",
                     zeroRecords: "🔍 No s'han trobat rutes que coincideixin",
-                    emptyTable: "🔖 No hi ha rutes reservades",
+                    emptyTable: "🔖 No tens cap ruta reservada",
                     paginate: {
                         first: "⏪ Primer",
                         last: "⏩ Últim",
@@ -669,7 +720,7 @@ $allHoraris = $allHoraris ?? [];
                 
                 // Configuración de páginas
                 pageLength: 10,
-                lengthMenu: [[5, 10, 15, 25, 50, -1], [5, 10, 15, 25, 50, "🌍 Tots"]],
+                lengthMenu: [[5, 10, 15, 25, 50, -1], [5, 10, 15, 25, 50, "📖 Totes"]],
                 
                 // Características
                 searching: true,
@@ -677,34 +728,23 @@ $allHoraris = $allHoraris ?? [];
                 paging: true,
                 info: true,
                 responsive: true,
-                stateSave: true,
+                stateSave: false,
                 
                 // Configuración de columnas
                 columnDefs: [
                     {
-                        targets: [0], // Usuari
-                        orderable: true,
-                        className: 'text-center'
-                    },
-                    {
-                        targets: [1], // Data
+                        targets: [0], // Data
                         orderable: true,
                         type: 'date'
                     },
                     {
-                        targets: [2, 3, 4, 5], // Horari, Ruta, Vehicle, Comentaris
+                        targets: [1, 2, 3, 4, 5, 6], // Horari, Ruta, Vehicle, Conductor, Places, Comentaris
                         orderable: true
-                    },
-                    {
-                        targets: [6], // Accions
-                        orderable: false,
-                        searchable: false,
-                        className: 'text-center'
                     }
                 ],
                 
                 // Ordenación inicial por fecha descendente
-                order: [[1, 'desc']],
+                order: [[0, 'desc']],
                 
                 // DOM layout personalizado
                 dom: '<"row mb-3"<"col-sm-12 col-md-4"l><"col-sm-12 col-md-8"f>>' +
@@ -718,12 +758,12 @@ $allHoraris = $allHoraris ?? [];
                 
                 // Callback de inicialización
                 initComplete: function() {
-                    console.log('✅ DataTable inicializada correctamente para Tots els Horaris');
+                    console.log('✅ DataTable inicializada correctamente para Rutes reservades');
                     
                     // Personalizar controles
-                    $('#allHorarisTable_wrapper .dataTables_filter input').attr('placeholder', '🌍 Buscar tots els horaris...');
-                    $('#allHorarisTable_wrapper .dataTables_length label').prepend('<i class="bi bi-people me-2 text-success"></i>');
-                    $('#allHorarisTable_wrapper .dataTables_filter label').prepend('<i class="bi bi-globe me-2 text-success"></i>');
+                    $('#reservedHorarisTable_wrapper .dataTables_filter input').attr('placeholder', '🔖 Buscar les teves reserves...');
+                    $('#reservedHorarisTable_wrapper .dataTables_length label').prepend('<i class="bi bi-bookmark-check me-2 text-success"></i>');
+                    $('#reservedHorarisTable_wrapper .dataTables_filter label').prepend('<i class="bi bi-search me-2 text-success"></i>');
                 }
             });
             
@@ -775,13 +815,14 @@ $allHoraris = $allHoraris ?? [];
             // Obtener tab activo
             const activeTab = document.querySelector('.nav-link.active').id;
             const isMyHoraris = activeTab === 'my-horaris-tab';
+            const isReserved = activeTab === 'all-horaris-tab';
             
             // Obtener la tabla DataTable correspondiente
             let table;
             if (isMyHoraris) {
                 table = $('#myHorarisTable').DataTable();
-            } else {
-                table = $('#allHorarisTable').DataTable();
+            } else if (isReserved) {
+                table = $('#reservedHorarisTable').DataTable();
             }
             
             if (!table) return;
@@ -791,15 +832,15 @@ $allHoraris = $allHoraris ?? [];
             
             // Aplicar filtros por columna
             if (filterDate) {
-                table.column(isMyHoraris ? 0 : 1).search(filterDate);
+                table.column(0).search(filterDate); // La columna de fecha es siempre la 0
             }
             
             if (filterVehicle) {
-                table.column(isMyHoraris ? 3 : 4).search(filterVehicle);
+                table.column(isMyHoraris ? 3 : 3).search(filterVehicle); // Columna vehicle
             }
             
             if (filterLocation) {
-                table.column(isMyHoraris ? 2 : 3).search(filterLocation);
+                table.column(isMyHoraris ? 2 : 2).search(filterLocation); // Columna ruta
             }
             
             // Redraw de la tabla

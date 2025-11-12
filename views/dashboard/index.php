@@ -189,6 +189,14 @@ $userPreferences = $userPreferences ?? [
                                     </button>
                                 </div>
                             </div>
+                            <div class="col-md-6">
+                                <div class="d-grid">
+                                    <a href="../../public/index.php?controller=rutes&action=index" class="btn btn-outline-dark btn-lg rounded-3">
+                                        <i class="bi bi-map me-2"></i>Veure rutes
+                                        <small class="d-block text-muted">Explora rutes disponibles</small>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

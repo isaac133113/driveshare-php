@@ -24,190 +24,235 @@ class HorariController extends BaseController {
 
         // Procesar operaciones CRUD
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $this->handlePostRequest();
+            $result = $this->handlePostRequest();
+            $message = $result['message'];
+            $messageType = $result['type'];
         }
 
         // Manejar eliminación
         if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
-            $this->deleteHorari($_GET['delete']);
+            $result = $this->deleteHorari($_GET['delete']);
+            $message = $result['message'];
+            $messageType = $result['type'];
         }
-
-        // Obtener mensajes flash
-        $flash = $this->getFlashMessage();
-        if ($flash && isset($flash['message'])) {
-            $message = $flash['message'];
-            $messageType = $flash['type'];
-        }
-        
-        // Mensajes de confirmación después de redirección
-        $message = $this->getMessageFromQuery($messageType) ?: $message;
         
         // Obtener horario para edición
         if (isset($_GET['edit']) && is_numeric($_GET['edit'])) {
             $editingHorari = $this->horariModel->getHorariById($_GET['edit'], $_SESSION['user_id']);
+            if (!$editingHorari) {
+                $message = 'Horari no trobat o no tens permisos per editar-lo';
+                $messageType = 'danger';
+            }
         }
         
         // Obtener datos para la vista
         $allHoraris = $this->horariModel->getAllHoraris();
         $myHoraris = $this->horariModel->getHorarisByUserId($_SESSION['user_id']);
+        
+        // Obtener reservas del usuario
+        require_once __DIR__ . '/../models/ReservaModel.php';
+        $reservaModel = new ReservaModel();
+        $myReservations = $reservaModel->getUserReservationsWithDetails($_SESSION['user_id']);
+        
         $vehicles = $this->horariModel->getVehiclesList();
         $stats = $this->horariModel->getHorarisStats($_SESSION['user_id']);
         
         // Cargar la vista
-        include __DIR__ . '/../views/horaris/horaris.php';
+        include_once __DIR__ . '/../views/horaris/horaris.php';
     }
     
     private function handlePostRequest() {
         if (isset($_POST['action'])) {
             switch ($_POST['action']) {
                 case 'create':
-                    $this->createHorari();
-                    break;
+                    return $this->createHorari();
                 case 'update':
-                    $this->updateHorari();
-                    break;
+                    return $this->updateHorari();
+                default:
+                    return ['message' => 'Acció no vàlida', 'type' => 'danger'];
             }
         }
+        return ['message' => '', 'type' => ''];
     }
     
     private function createHorari() {
-        $data = [
-            'user_id' => $_SESSION['user_id'],
-            'data_ruta' => $this->sanitizeInput($_POST['data_ruta']),
-            'hora_inici' => $this->sanitizeInput($_POST['hora_inici']),
-            'hora_fi' => $this->sanitizeInput($_POST['hora_fi']),
-            'origen' => $this->sanitizeInput($_POST['origen']),
-            'desti' => $this->sanitizeInput($_POST['desti']),
-            'vehicle' => $this->sanitizeInput($_POST['vehicle']),
-            'comentaris' => $this->sanitizeInput($_POST['comentaris'])
-        ];
-        
-        if ($this->horariModel->createHorari($data)) {
-            $this->redirectWithMessage('horaris.php?created=1', 'Horari creat correctament!', 'success');
-        } else {
-            $this->redirectWithMessage('horaris.php?error=create', 'Error al crear l\'horari', 'danger');
+        try {
+            // Validar campos requeridos
+            $requiredFields = ['data_ruta', 'hora_inici', 'hora_fi', 'origen', 'desti', 'vehicle'];
+            foreach ($requiredFields as $field) {
+                if (empty($_POST[$field])) {
+                    return ['message' => "El camp {$field} és obligatori", 'type' => 'danger'];
+                }
+            }
+
+            $data = [
+                'user_id' => $_SESSION['user_id'],
+                'data_ruta' => $this->sanitizeInput($_POST['data_ruta']),
+                'hora_inici' => $this->sanitizeInput($_POST['hora_inici']),
+                'hora_fi' => $this->sanitizeInput($_POST['hora_fi']),
+                'origen' => $this->sanitizeInput($_POST['origen']),
+                'desti' => $this->sanitizeInput($_POST['desti']),
+                'vehicle' => $this->sanitizeInput($_POST['vehicle']),
+                'comentaris' => $this->sanitizeInput($_POST['comentaris'] ?? '')
+            ];
+            
+            if ($this->horariModel->createHorari($data)) {
+                return ['message' => 'Horari creat correctament!', 'type' => 'success'];
+            } else {
+                return ['message' => 'Error al crear l\'horari', 'type' => 'danger'];
+            }
+        } catch (Exception $e) {
+            error_log("Error en createHorari: " . $e->getMessage());
+            return ['message' => 'Error al crear l\'horari: ' . $e->getMessage(), 'type' => 'danger'];
         }
     }
     
     private function updateHorari() {
-        $data = [
-            'data_ruta' => $this->sanitizeInput($_POST['data_ruta']),
-            'hora_inici' => $this->sanitizeInput($_POST['hora_inici']),
-            'hora_fi' => $this->sanitizeInput($_POST['hora_fi']),
-            'origen' => $this->sanitizeInput($_POST['origen']),
-            'desti' => $this->sanitizeInput($_POST['desti']),
-            'vehicle' => $this->sanitizeInput($_POST['vehicle']),
-            'comentaris' => $this->sanitizeInput($_POST['comentaris'])
-        ];
-        
-        $id = (int)$_POST['id'];
-        
-        if ($this->horariModel->updateHorari($id, $_SESSION['user_id'], $data)) {
-            $this->redirectWithMessage('horaris.php?updated=1', 'Horari actualitzat correctament!', 'success');
-        } else {
-            $this->redirectWithMessage('horaris.php?error=update', 'Error al actualitzar l\'horari', 'danger');
+        try {
+            if (empty($_POST['id']) || !is_numeric($_POST['id'])) {
+                return ['message' => 'ID de horari no vàlid', 'type' => 'danger'];
+            }
+
+            $id = (int)$_POST['id'];
+            
+            // Validar campos requeridos
+            $requiredFields = ['data_ruta', 'hora_inici', 'hora_fi', 'origen', 'desti', 'vehicle'];
+            foreach ($requiredFields as $field) {
+                if (empty($_POST[$field])) {
+                    return ['message' => "El camp {$field} és obligatori", 'type' => 'danger'];
+                }
+            }
+
+            $data = [
+                'data_ruta' => $this->sanitizeInput($_POST['data_ruta']),
+                'hora_inici' => $this->sanitizeInput($_POST['hora_inici']),
+                'hora_fi' => $this->sanitizeInput($_POST['hora_fi']),
+                'origen' => $this->sanitizeInput($_POST['origen']),
+                'desti' => $this->sanitizeInput($_POST['desti']),
+                'vehicle' => $this->sanitizeInput($_POST['vehicle']),
+                'comentaris' => $this->sanitizeInput($_POST['comentaris'] ?? '')
+            ];
+            
+            if ($this->horariModel->updateHorari($id, $_SESSION['user_id'], $data)) {
+                return ['message' => 'Horari actualitzat correctament!', 'type' => 'success'];
+            } else {
+                return ['message' => 'Error al actualitzar l\'horari o no tens permisos', 'type' => 'danger'];
+            }
+        } catch (Exception $e) {
+            error_log("Error en updateHorari: " . $e->getMessage());
+            return ['message' => 'Error al actualitzar l\'horari: ' . $e->getMessage(), 'type' => 'danger'];
         }
     }
     
     private function deleteHorari($id) {
-        if ($this->horariModel->deleteHorari($id, $_SESSION['user_id'])) {
-            $this->redirectWithMessage('horaris.php?deleted=1', 'Horari eliminat correctament!', 'success');
-        } else {
-            $this->redirectWithMessage('horaris.php?error=delete', 'Error al eliminar l\'horari', 'danger');
-        }
-    }
-    
-    private function getMessageFromQuery(&$messageType) {
-        if (isset($_GET['created']) && $_GET['created'] == '1') {
-            $messageType = 'success';
-            return 'Horari creat correctament!';
-        }
-        
-        if (isset($_GET['updated']) && $_GET['updated'] == '1') {
-            $messageType = 'success';
-            return 'Horari actualitzat correctament!';
-        }
-        
-        if (isset($_GET['deleted']) && $_GET['deleted'] == '1') {
-            $messageType = 'success';
-            return 'Horari eliminat correctament!';
-        }
-        
-        if (isset($_GET['error'])) {
-            $messageType = 'danger';
-            switch ($_GET['error']) {
-                case 'create':
-                    return 'Error al crear l\'horari.';
-                case 'update':
-                    return 'Error al actualitzar l\'horari.';
-                case 'delete':
-                    return 'Error al eliminar l\'horari.';
-                default:
-                    return 'S\'ha produït un error.';
+        try {
+            if ($this->horariModel->deleteHorari($id, $_SESSION['user_id'])) {
+                return ['message' => 'Horari eliminat correctament!', 'type' => 'success'];
+            } else {
+                return ['message' => 'Error al eliminar l\'horari o no tens permisos', 'type' => 'danger'];
             }
+        } catch (Exception $e) {
+            error_log("Error en deleteHorari: " . $e->getMessage());
+            return ['message' => 'Error al eliminar l\'horari: ' . $e->getMessage(), 'type' => 'danger'];
         }
-        
-        return '';
     }
     
     public function search() {
         header('Content-Type: application/json');
         
-        $filters = [
-            'date' => $_GET['date'] ?? '',
-            'vehicle' => $_GET['vehicle'] ?? '',
-            'location' => $_GET['location'] ?? '',
-            'user' => $_GET['user'] ?? ''
-        ];
-        
-        $tab = $_GET['tab'] ?? 'all';
-        $userId = ($tab === 'my') ? $_SESSION['user_id'] : null;
-        
-        $results = $this->horariModel->searchHoraris($filters, $userId);
-        echo json_encode($results);
+        try {
+            $filters = [
+                'date' => $_GET['date'] ?? '',
+                'vehicle' => $_GET['vehicle'] ?? '',
+                'location' => $_GET['location'] ?? '',
+                'user' => $_GET['user'] ?? ''
+            ];
+            
+            $tab = $_GET['tab'] ?? 'all';
+            $userId = ($tab === 'my') ? $_SESSION['user_id'] : null;
+            
+            $results = $this->horariModel->searchHoraris($filters, $userId);
+            echo json_encode(['success' => true, 'data' => $results]);
+        } catch (Exception $e) {
+            error_log("Error en search: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error en la cerca']);
+        }
         exit;
     }
     
     public function logout() {
         session_destroy();
-        $this->redirect('login.php');
+        $this->redirect(BASE_URL . '/public/index.php?controller=auth&action=login');
     }
 
     public function editModal() {
-        $id = intval($_GET['id']);
-        $ruta = $this->horariModel->getHorariById($id, $_SESSION['user_id']);
-        if ($ruta) {
-            include __DIR__ . '/../views/dashboard/modal_edit.php';
+        try {
+            $id = intval($_GET['id'] ?? 0);
+            $ruta = $this->horariModel->getHorariById($id, $_SESSION['user_id']);
+            if ($ruta) {
+                include __DIR__ . '/../views/dashboard/modal_edit.php';
+            } else {
+                echo json_encode(['success' => false, 'message' => 'Horari no trobat']);
+            }
+        } catch (Exception $e) {
+            error_log("Error en editModal: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error al carregar l\'horari']);
         }
         exit;
     }
 
     public function deleteAjax() {
-        $id = intval($_POST['id']);
-        $success = $this->horariModel->deleteHorari($id, $_SESSION['user_id']);
-        echo json_encode(['success' => $success]);
+        header('Content-Type: application/json');
+        
+        try {
+            $id = intval($_POST['id'] ?? 0);
+            $success = $this->horariModel->deleteHorari($id, $_SESSION['user_id']);
+            echo json_encode([
+                'success' => $success,
+                'message' => $success ? 'Horari eliminat correctament' : 'Error al eliminar l\'horari'
+            ]);
+        } catch (Exception $e) {
+            error_log("Error en deleteAjax: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error al eliminar l\'horari']);
+        }
         exit;
     }
 
     public function updateAjax() {
-        $id = intval($_POST['id']);
-        $data = [];
-
-        // Solo agregar al array si existe en POST
-        $camposPosibles = ['data_ruta', 'hora_inici', 'hora_fi', 'origen', 'desti', 'vehicle', 'comentaris', 'plazas_disponibles'];
-        foreach ($camposPosibles as $campo) {
-            if (isset($_POST[$campo])) {
-                $data[$campo] = $_POST[$campo];
+        header('Content-Type: application/json');
+        
+        try {
+            $id = intval($_POST['id'] ?? 0);
+            
+            if ($id <= 0) {
+                echo json_encode(['success' => false, 'message' => 'ID no vàlid']);
+                exit;
             }
-        }
 
-        if (empty($data)) {
-            echo json_encode(['success' => false, 'message' => 'No hay campos para actualizar']);
-            exit;
-        }
+            $data = [];
+            $camposPosibles = ['data_ruta', 'hora_inici', 'hora_fi', 'origen', 'desti', 'vehicle', 'comentaris', 'plazas_disponibles'];
+            
+            foreach ($camposPosibles as $campo) {
+                if (isset($_POST[$campo])) {
+                    $data[$campo] = $this->sanitizeInput($_POST[$campo]);
+                }
+            }
 
-        $success = $this->horariModel->updateHorari($id, $_SESSION['user_id'], $data);
-        echo json_encode(['success' => $success]);
+            if (empty($data)) {
+                echo json_encode(['success' => false, 'message' => 'No hi ha camps per actualitzar']);
+                exit;
+            }
+
+            $success = $this->horariModel->updateHorari($id, $_SESSION['user_id'], $data);
+            echo json_encode([
+                'success' => $success,
+                'message' => $success ? 'Horari actualitzat correctament' : 'Error al actualitzar l\'horari'
+            ]);
+        } catch (Exception $e) {
+            error_log("Error en updateAjax: " . $e->getMessage());
+            echo json_encode(['success' => false, 'message' => 'Error al actualitzar l\'horari']);
+        }
         exit;
     }
 }
+?>
