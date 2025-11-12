@@ -30,6 +30,14 @@ class HorariRutaModel {
         $this->db = Database::getInstance()->getConnection();
     }
 
+    public function getById($id) {
+        $stmt = $this->db->prepare("SELECT * FROM horaris_rutes WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_assoc();
+    }
+
     public function getByUserId($userId) {
         $sql = "SELECT hr.*, v.marca_model as vehicle_name 
                 FROM horaris_rutes hr 

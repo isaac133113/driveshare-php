@@ -257,8 +257,7 @@ $userPreferences = $userPreferences ?? [
                                                 <div class="col-md-6">
                                                     <label class="form-label">Origen</label>
                                                     <div class="input-group mb-3">
-                                                        <input type="text" class="form-control" id="origenInput" 
-                                                            placeholder="Cerca una ubicació..." required>
+                                                        <input type="text" class="form-control" id="origenInput" name="origenInput" placeholder="Cerca una ubicació..." required>
                                                         <button class="btn btn-outline-primary" type="button" 
                                                                 onclick="searchLocation('origen')">
                                                             <i class="bi bi-search"></i>
@@ -268,8 +267,7 @@ $userPreferences = $userPreferences ?? [
                                                 <div class="col-md-6">
                                                     <label class="form-label">Destí</label>
                                                     <div class="input-group mb-3">
-                                                        <input type="text" class="form-control" id="destiInput" 
-                                                            placeholder="Cerca una ubicació..." required>
+                                                        <input type="text" class="form-control" id="destiInput" name="destiInput" placeholder="Cerca una ubicació..." required>
                                                         <button class="btn btn-outline-primary" type="button" 
                                                                 onclick="searchLocation('desti')">
                                                             <i class="bi bi-search"></i>
@@ -321,14 +319,18 @@ $userPreferences = $userPreferences ?? [
                                                     <th>Horari</th>
                                                     <th>Ruta</th>
                                                     <th>Vehicle</th>
-                                                    <th>Places</th>
+                                                    <th>Places Restants</th>
                                                     <th>Preu</th>
-                                                    <th>Estat</th>
-                                                    <th></th>
+                                                    <th>Accions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                <?php foreach ($userRoutes as $ruta): ?>
+                                                <?php
+                                                $reservaModel = new ReservaModel();
+                                                foreach ($userRoutes as $ruta):
+                                                    $reservadas = $reservaModel->getReservedSeats($ruta['id']);
+                                                    $plazasRestantes = $ruta['plazas_disponibles'] - $reservadas;
+                                                ?>
                                                     <tr>
                                                         <td><?php echo date('d/m/Y', strtotime($ruta['data_ruta'])); ?></td>
                                                         <td>
@@ -346,37 +348,18 @@ $userPreferences = $userPreferences ?? [
                                                             </small>
                                                         </td>
                                                         <td><?php echo htmlspecialchars($ruta['vehicle_name']); ?></td>
-                                                        <td class="text-center"><?php echo $ruta['plazas_disponibles']; ?></td>
+                                                        <td class="text-center"><?php echo $plazasRestantes; ?></td>
                                                         <td><?php echo number_format($ruta['precio_euros'], 2); ?>€</td>
                                                         <td>
-                                                            <?php
-                                                            switch($ruta['estado']) {
-                                                                case 1:
-                                                                    $badgeClass = 'bg-warning';   // Pendent
-                                                                    break;
-                                                                case 2:
-                                                                    $badgeClass = 'bg-success';   // Confirmada
-                                                                    break;
-                                                                case 3:
-                                                                    $badgeClass = 'bg-info';      // Completada
-                                                                    break;
-                                                                case 4:
-                                                                    $badgeClass = 'bg-danger';    // Cancel·lada
-                                                                    break;
-                                                                default:
-                                                                    $badgeClass = 'bg-secondary';
-                                                                    break;
-                                                            }
-                                                            $estados = (new HorariRutaModel())->getEstados();
-                                                            ?>
-                                                            <span class="badge <?php echo $badgeClass; ?>">
-                                                                <?php echo $estados[$ruta['estado']] ?? 'Desconegut'; ?>
-                                                            </span>
-                                                        </td>
-                                                        <td>
-                                                            <button type="button" class="btn btn-sm btn-outline-primary"
-                                                                    onclick="viewRouteDetails(<?php echo $ruta['id']; ?>)">
-                                                                <i class="bi bi-eye"></i>
+                                                            <!-- Botón Editar -->
+                                                            <button class="btn btn-sm btn-outline-primary me-1 editRutaBtn" 
+                                                                    data-id="<?php echo $ruta['id']; ?>">
+                                                                <i class="bi bi-pencil"></i>
+                                                            </button>
+                                                            <!-- Botón Eliminar -->
+                                                            <button class="btn btn-sm btn-outline-danger deleteRutaBtn" 
+                                                                    data-id="<?php echo $ruta['id']; ?>">
+                                                                <i class="bi bi-trash"></i>
                                                             </button>
                                                         </td>
                                                     </tr>
@@ -394,10 +377,16 @@ $userPreferences = $userPreferences ?? [
                         </div>
                     </div>
                 </div>
-                
-            </div>
-        </div>
-    </div>
+
+                <!-- Modal Editar Ruta -->
+                <div class="modal fade" id="editRutaModal" tabindex="-1">
+                    <div class="modal-dialog">
+                        <div class="modal-content" id="editRutaContent">
+                            <!-- Aquí cargaremos el formulario vía AJAX -->
+                        </div>
+                    </div>
+                </div>
+
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -873,6 +862,7 @@ $userPreferences = $userPreferences ?? [
                 `);
             }, 300);
         }
+
     </script>
 
     <!-- Scripts para el mapa de rutas -->
@@ -974,5 +964,42 @@ $userPreferences = $userPreferences ?? [
             showInfoModal('Detalls de la Ruta', 'Implementació pendent...');
         }
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // EDITAR
+            document.querySelectorAll('.editRutaBtn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const rutaId = this.dataset.id;
+                    fetch(`../../public/index.php?controller=horaris&action=editModal&id=${rutaId}`)
+                        .then(res => res.text())
+                        .then(html => {
+                            document.getElementById('editRutaContent').innerHTML = html;
+                            new bootstrap.Modal(document.getElementById('editRutaModal')).show();
+                        });
+                });
+            });
+
+            // ELIMINAR
+            document.querySelectorAll('.deleteRutaBtn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const rutaId = this.dataset.id;
+                    if (confirm('Estàs segur que vols eliminar aquesta ruta?')) {
+                        fetch(`../../public/index.php?controller=horaris&action=deleteAjax&id=${rutaId}`, { method: 'POST' })
+                            .then(res => res.json())
+                            .then(data => {
+                                if (data.success) {
+                                    // Remover fila de la tabla
+                                    btn.closest('tr').remove();
+                                } else {
+                                    alert('Error al eliminar la ruta.');
+                                }
+                            });
+                    }
+                });
+            });
+        });
+        </script>
+
 </body>
 </html>

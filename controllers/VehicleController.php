@@ -23,23 +23,26 @@ class VehicleController extends BaseController {
         
         // Procesar acciones CRUD
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            switch ($_POST['action']) {
+            $formAction = $_POST['action'] ?? '';
+
+            switch ($formAction) {
                 case 'save':
                     $result = $this->saveVehicle();
-                    header("Location: ?controller=vehicle&action=index&success=" . urlencode($result['message']) . "&type=" . $result['type']);
+                    header("Location: ../../public/index.php?controller=vehicle&action=index&success=" . urlencode($result['message']) . "&type=" . $result['type']);
                     exit;
 
                 case 'delete':
                     $result = $this->deleteVehicle();
-                    header("Location: ?controller=vehicle&action=index&success=" . urlencode($result['message']) . "&type=" . $result['type']);
+                    header("Location: ../../public/index.php?controller=vehicle&action=index&success=" . urlencode($result['message']) . "&type=" . $result['type']);
                     exit;
 
                 case 'upload_image':
                     $result = $this->uploadVehicleImages();
-                    header("Location: ?controller=vehicle&action=index&success=" . urlencode($result['message']) . "&type=" . $result['type']);
+                    header("Location: ../../public/index.php?controller=vehicle&action=index&success=" . urlencode($result['message']) . "&type=" . $result['type']);
                     exit;
             }
         }
+
         
         // Cargar la vista
         include __DIR__ . '/../views/vehicles/index.php';
@@ -106,14 +109,12 @@ class VehicleController extends BaseController {
             'tipus' => $_POST['tipus'] ?? '',
             'places' => intval($_POST['places'] ?? 0),
             'transmissio' => $_POST['transmissio'] ?? '',
-            'preu_hora' => floatval($_POST['preu_hora'] ?? 0),
             'descripcio' => $_POST['descripcio'] ?? ''
         ];
         
         // Validar datos requeridos
         if (empty($data['marca_model']) || empty($data['tipus']) || 
-            empty($data['places']) || empty($data['transmissio']) || 
-            empty($data['preu_hora'])) {
+            empty($data['places']) || empty($data['transmissio'])) {
             return [
                 'success' => false,
                 'message' => 'Tots els camps són obligatoris',
@@ -184,80 +185,80 @@ class VehicleController extends BaseController {
     }
 
     private function uploadVehicleImages() {
-        require_once __DIR__ . '/../models/VehicleModel.php';
+    require_once __DIR__ . '/../models/VehicleModel.php';
 
-        $vehicleId = intval($_POST['vehicle_id'] ?? 0);
-        if (!$vehicleId || empty($_FILES['images'])) {
-            return [
-                'success' => false,
-                'message' => 'Dades no vàlides',
-                'type' => 'danger'
-            ];
+    $vehicleId = intval($_POST['vehicle_id'] ?? 0);
+    if (!$vehicleId || empty($_FILES['images'])) {
+        return [
+            'success' => false,
+            'message' => 'Dades no vàlides',
+            'type' => 'danger'
+        ];
+    }
+
+    $vehicleModel = new VehicleModel();
+    $vehicle = $vehicleModel->getVehicleById($vehicleId);
+
+    if (!$vehicle || $vehicle['user_id'] != $_SESSION['user_id']) {
+        return [
+            'success' => false,
+            'message' => 'No tens permís per pujar imatges a aquest vehicle',
+            'type' => 'danger'
+        ];
+    }
+
+    // Ruta física para guardar archivos
+    $uploadDir = __DIR__ . '/../public/uploads/vehicles/';
+
+    if (!file_exists($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
+
+    $success = true;
+    $uploadedFiles = 0;
+    $errors = [];
+
+    // Eliminar imágenes existentes
+    $existingImages = $vehicleModel->getVehicleImages($vehicleId);
+    foreach ($existingImages as $img) {
+        $filePath = __DIR__ . '/../public/' . $img['url']; // ruta física completa
+        if (file_exists($filePath)) {
+            @unlink($filePath);
         }
+        $vehicleModel->deleteVehicleImage($img['id']);
+    }
 
-        $vehicleModel = new VehicleModel();
-        $vehicle = $vehicleModel->getVehicleById($vehicleId);
+    // Subir nuevas imágenes
+    foreach ($_FILES['images']['tmp_name'] as $key => $tmp_name) {
+        if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
+            $fileName = uniqid() . '_' . basename($_FILES['images']['name'][$key]);
+            $filePath = $uploadDir . $fileName;
 
-        // Verificar que el vehículo pertenece al usuario
-        if (!$vehicle || $vehicle['user_id'] != $_SESSION['user_id']) {
-            return [
-                'success' => false,
-                'message' => 'No tens permís per pujar imatges a aquest vehicle',
-                'type' => 'danger'
-            ];
-        }
-
-        // Directorio de subida
-        $uploadDir = __DIR__ . '/../public/uploads/vehicles/';
-        if (!file_exists($uploadDir)) {
-            mkdir($uploadDir, 0777, true);
-        }
-
-        $success = true;
-        $uploadedFiles = 0;
-        $errors = [];
-
-        // Eliminar imágenes existentes (opcional, si quieres reemplazar)
-        $existingImages = $vehicleModel->getVehicleImages($vehicleId);
-        foreach ($existingImages as $img) {
-            $filePath = __DIR__ . '/../public/' . ltrim($img['url'], '/'); // ruta física correcta
-            if (file_exists($filePath)) {
-                @unlink($filePath); // eliminar archivo físico
+            if (move_uploaded_file($tmp_name, $filePath)) {
+                // Guardar la ruta relativa a public/ para la vista
+                $vehicleModel->addVehicleImage($vehicleId, 'uploads/vehicles/' . $fileName);
+                $uploadedFiles++;
+            } else {
+                $errors[] = $_FILES['images']['name'][$key];
+                $success = false;
             }
-            $vehicleModel->deleteVehicleImage($img['id']); // eliminar registro DB
-        }
-
-        // Subir nuevas imágenes
-        foreach ($_FILES['images']['tmp_name'] as $key => $tmp_name) {
-            if ($_FILES['images']['error'][$key] === UPLOAD_ERR_OK) {
-                $fileName = uniqid() . '_' . basename($_FILES['images']['name'][$key]);
-                $filePath = $uploadDir . $fileName;
-
-                if (move_uploaded_file($tmp_name, $filePath)) {
-                    // Guardar ruta relativa para la vista
-                    $vehicleModel->addVehicleImage($vehicleId, 'uploads/vehicles/' . $fileName);
-                    $uploadedFiles++;
-                } else {
-                    $errors[] = $_FILES['images']['name'][$key];
-                    $success = false;
-                }
-            }
-        }
-
-        if ($uploadedFiles > 0) {
-            return [
-                'success' => true,
-                'message' => $uploadedFiles . ' imatges pujades correctament',
-                'type' => 'success'
-            ];
-        } else {
-            return [
-                'success' => false,
-                'message' => 'Error al pujar les imatges: ' . implode(', ', $errors),
-                'type' => 'danger'
-            ];
         }
     }
+
+    if ($uploadedFiles > 0) {
+        return [
+            'success' => true,
+            'message' => $uploadedFiles . ' imatges pujades correctament',
+            'type' => 'success'
+        ];
+    } else {
+        return [
+            'success' => false,
+            'message' => 'Error al pujar les imatges: ' . implode(', ', $errors),
+            'type' => 'danger'
+        ];
+    }
+}
 
 }
 ?>

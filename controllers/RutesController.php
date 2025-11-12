@@ -71,7 +71,7 @@ class RutesController {
             $paymentMethod = $_POST['pay_method'] ?? 'money';
 
             // Obtener la ruta por ID
-            $ruta = $this->rutaModel->getByUserId($rutaId);
+            $ruta = $this->rutaModel->getById($rutaId);
             if (!$ruta) {
                 $_SESSION['message'] = "Ruta no encontrada.";
                 $_SESSION['messageType'] = "danger";
@@ -116,12 +116,30 @@ class RutesController {
 
             } else {
                 // Pago con dinero
+                $totalEurosGastados = $ruta['precio_euros'] * $plazas;
+
+                // Obtener datos de usuario y propietario de la ruta
+                $usuario = $this->userModel->getById($userId);
+                $propietario = $this->userModel->getById($ruta['user_id']);
+
+                if ($usuario['saldo'] < $totalEurosGastados) {
+                    $_SESSION['message'] = "Saldo insuficiente.";
+                    $_SESSION['messageType'] = "danger";
+                    header("Location: ../../index.php?controller=rutes&action=index");
+                    exit;
+                }
+
+                // Descontar del usuario
+                $this->userModel->updateSaldo($userId, $usuario['saldo'] - $totalEurosGastados);
+
+                // Sumar al propietario
+                $this->userModel->updateSaldo($ruta['user_id'], $propietario['saldo'] + $totalEurosGastados);
+
+                // Crear reserva
                 $this->reservaModel->create($userId, $rutaId, $plazas);
 
-                // Calcular bonus: cada 50€ gastados = 10 DC
-                $totalEurosGastados = $ruta['precio_euros'] * $plazas;
-                $bonusDC = floor($totalEurosGastados / 50) * 10;
-
+                // Bonus DriveCoins
+                $bonusDC = $totalEurosGastados * 0.2; // 20% de los euros gastados
                 if ($bonusDC > 0) {
                     $this->driveCoinModel->addCoins($userId, $bonusDC, "Bonus por gastar $totalEurosGastados €");
                     $_SESSION['message'] = "Reserva realizada! ¡Ganaste $bonusDC DriveCoins!";
@@ -136,5 +154,4 @@ class RutesController {
             exit;
         }
     }
-
 }

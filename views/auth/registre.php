@@ -20,7 +20,7 @@
                             <p class="text-muted">Crea el teu compte</p>
                         </div>
                         
-                        <form action="../../public/index.php?controller=auth&action=login" method="post" enctype="multipart/form-data">
+                        <form action="../../public/index.php?controller=auth&action=register" method="post" enctype="multipart/form-data">
                             <div class="mb-3">
                                 <label for="nom" class="form-label fw-semibold">
                                     <i class="bi bi-person me-2"></i>Nom

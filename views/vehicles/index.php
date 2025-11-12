@@ -91,18 +91,15 @@
                                                     <strong><?php echo $vehicle['transmissio']; ?></strong>
                                                 </div>
                                             </div>
-                                            <div class="col-12">
-                                                <div class="bg-light rounded p-2 text-center">
-                                                    <small class="text-muted d-block">Preu per Hora</small>
-                                                    <strong class="text-primary"><?php echo number_format($vehicle['preu_hora'], 2); ?>€</strong>
-                                                </div>
-                                            </div>
                                         </div>
 
                                         <!-- Descripción -->
-                                        <p class="text-muted small mb-3">
-                                            <?php echo htmlspecialchars($vehicle['descripcio']); ?>
-                                        </p>
+                                        <div class="col-12">
+                                            <div class="bg-light rounded p-2 text-center" style="height: 80px; overflow: hidden; text-overflow: ellipsis;">
+                                                <small class="text-muted d-block">Descripció</small>
+                                                <span class="d-block text-truncate"><?php echo htmlspecialchars($vehicle['descripcio']); ?></span>
+                                            </div>
+                                        </div>
 
                                         <!-- Botones de acción -->
                                         <div class="d-flex gap-2">
@@ -178,11 +175,6 @@
                                     <option value="Automàtic">Automàtic</option>
                                 </select>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Preu per Hora (€)</label>
-                                <input type="number" class="form-control" name="preu_hora" id="preu_hora" 
-                                       step="0.01" min="0" required>
-                            </div>
                             <div class="col-12">
                                 <label class="form-label">Descripció</label>
                                 <textarea class="form-control" name="descripcio" id="descripcio" rows="3"></textarea>
@@ -255,7 +247,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel·lar</button>
-                    <form id="deleteForm" method="POST" class="d-inline" action="../../controllers/VehicleController.php">
+                    <form id="deleteForm" method="POST" class="d-inline" action="../../public/index.php?controller=vehicle&action=index">
                         <input type="hidden" name="action" value="delete">
                         <input type="hidden" name="id" id="deleteVehicleId">
                         <button type="submit" class="btn btn-danger">
@@ -278,7 +270,6 @@
             document.getElementById('tipus').value = vehicle.tipus;
             document.getElementById('places').value = vehicle.places;
             document.getElementById('transmissio').value = vehicle.transmissio;
-            document.getElementById('preu_hora').value = vehicle.preu_hora;
             document.getElementById('descripcio').value = vehicle.descripcio;
             
             new bootstrap.Modal(document.getElementById('vehicleModal')).show();

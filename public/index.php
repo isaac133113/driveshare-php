@@ -1,4 +1,6 @@
 <?php
+ob_start(); // Inicia buffer de salida
+
 session_start();
 
 // Buffer de salida para evitar problemas de headers
@@ -9,7 +11,6 @@ require_once __DIR__ . '/../controllers/VehicleController.php';
 require_once __DIR__ . '/../controllers/DashboardController.php';
 require_once __DIR__ . '/../controllers/RutesController.php';
 require_once __DIR__ . '/../controllers/HorariController.php';
-
 
 // Obtener la ruta y acción desde la URL
 $controllerName = $_GET['controller'] ?? 'auth';
@@ -46,6 +47,7 @@ switch ($controllerName) {
 // Llamar a la acción (método)
 if (method_exists($ctrl, $action)) {
     $ctrl->$action();
+    exit; // <--- evita que se siga ejecutando el resto del script
 } else {
     // Limpiar buffer antes de establecer headers
     ob_end_clean();

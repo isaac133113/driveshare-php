@@ -9,7 +9,6 @@ class AuthController extends BaseController {
     }
     
     public function login() {
-       
         
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $this->sanitizeInput($_POST['email']);
@@ -77,11 +76,13 @@ class AuthController extends BaseController {
             
             if (empty($errors)) {
                 if ($this->userModel->createUser($data)) {
-                    $success = true;
+                    // Redirigir al login con mensaje de éxito
+                    header("Location: ../../public/index.php?controller=auth&action=login&success=" . urlencode("Usuari creat correctament. Pots iniciar sessió."));
+                    exit;
                 } else {
                     $errors[] = 'Error al crear l\'usuari. Si us plau, torna-ho a intentar.';
                 }
-            }
+            }  
         }
 
         // Cargar la vista
