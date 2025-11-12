@@ -103,38 +103,87 @@ class HorariRutaModel {
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
+    // public function getFilteredRutes($filtros = []) {
+    //     $sql = "SELECT * FROM rutes WHERE 1=1";
+    //     $params = [];
+
+    //     if (!empty($filtros['origen'])) {
+    //         $sql .= " AND origen LIKE :origen";
+    //         $params[':origen'] = '%' . $filtros['origen'] . '%';
+    //     }
+    //     if (!empty($filtros['desti'])) {
+    //         $sql .= " AND desti LIKE :desti";
+    //         $params[':desti'] = '%' . $filtros['desti'] . '%';
+    //     }
+    //     if (!empty($filtros['tipus'])) {
+    //         $sql .= " AND tipus LIKE :tipus";
+    //         $params[':tipus'] = '%' . $filtros['tipus'] . '%';
+    //     }
+    //     if (!empty($filtros['marca_model'])) {
+    //         $sql .= " AND marca_model LIKE :marca_model";
+    //         $params[':marca_model'] = '%' . $filtros['marca_model'] . '%';
+    //     }
+    //     if (!empty($filtros['min_precio'])) {
+    //         $sql .= " AND preu_hora >= :min_precio";
+    //         $params[':min_precio'] = $filtros['min_precio'];
+    //     }
+    //     if (!empty($filtros['max_precio'])) {
+    //         $sql .= " AND preu_hora <= :max_precio";
+    //         $params[':max_precio'] = $filtros['max_precio'];
+    //     }
+
+    //     $stmt = $this->db->prepare($sql);
+    //     $stmt->execute($params);
+    //     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // }
+
     public function getFilteredRutes($filtros = []) {
-        $sql = "SELECT * FROM rutes WHERE 1=1";
-        $params = [];
+        $sql = "SELECT hr.*, v.marca_model, v.tipus, vi.url AS vehicle_image
+                FROM horaris_rutes hr
+                LEFT JOIN vehicles v ON hr.vehicle_id = v.id
+                LEFT JOIN vehicle_images vi ON v.id = vi.vehicle_id AND vi.orden = 0
+                WHERE 1=1";
+        
+        $types = '';
+        $values = [];
 
         if (!empty($filtros['origen'])) {
-            $sql .= " AND origen LIKE :origen";
-            $params[':origen'] = '%' . $filtros['origen'] . '%';
+            $sql .= " AND hr.origen LIKE ?";
+            $types .= 's';
+            $values[] = '%' . $filtros['origen'] . '%';
         }
         if (!empty($filtros['desti'])) {
-            $sql .= " AND desti LIKE :desti";
-            $params[':desti'] = '%' . $filtros['desti'] . '%';
+            $sql .= " AND hr.desti LIKE ?";
+            $types .= 's';
+            $values[] = '%' . $filtros['desti'] . '%';
         }
         if (!empty($filtros['tipus'])) {
-            $sql .= " AND tipus LIKE :tipus";
-            $params[':tipus'] = '%' . $filtros['tipus'] . '%';
+            $sql .= " AND v.tipus LIKE ?";
+            $types .= 's';
+            $values[] = '%' . $filtros['tipus'] . '%';
         }
         if (!empty($filtros['marca_model'])) {
-            $sql .= " AND marca_model LIKE :marca_model";
-            $params[':marca_model'] = '%' . $filtros['marca_model'] . '%';
+            $sql .= " AND v.marca_model LIKE ?";
+            $types .= 's';
+            $values[] = '%' . $filtros['marca_model'] . '%';
         }
         if (!empty($filtros['min_precio'])) {
-            $sql .= " AND preu_hora >= :min_precio";
-            $params[':min_precio'] = $filtros['min_precio'];
+            $sql .= " AND hr.precio_euros >= ?";
+            $types .= 'd';
+            $values[] = $filtros['min_precio'];
         }
         if (!empty($filtros['max_precio'])) {
-            $sql .= " AND preu_hora <= :max_precio";
-            $params[':max_precio'] = $filtros['max_precio'];
+            $sql .= " AND hr.precio_euros <= ?";
+            $types .= 'd';
+            $values[] = $filtros['max_precio'];
         }
 
         $stmt = $this->db->prepare($sql);
-        $stmt->execute($params);
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if (!empty($values)) {
+            $stmt->bind_param($types, ...$values);
+        }
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
     public function getEstados() {
