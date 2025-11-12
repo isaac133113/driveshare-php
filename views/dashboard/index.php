@@ -163,32 +163,16 @@ $userPreferences = $userPreferences ?? [
                             </div>
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <button type="button" class="btn btn-outline-info btn-lg rounded-3" data-bs-toggle="modal" data-bs-target="#routesListModal">
-                                        <i class="bi bi-list-check me-2"></i>Les Meves Rutes
-                                        <small class="d-block text-muted">Historial i rutes actives</small>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Tercera fila de botones -->
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-6">
-                                <div class="d-grid">
                                     <a href="../../buscar-coche.php" class="btn btn-outline-warning btn-lg rounded-3">
                                         <i class="bi bi-geo-alt me-2"></i>Buscar Coche Cercano
                                         <small class="d-block text-muted">Mapa interactivo con ubicaciones</small>
                                     </a>
                                 </div>
                             </div>
-                            <div class="col-md-6">
-                                <div class="d-grid">
-                                    <button class="btn btn-outline-dark btn-lg rounded-3" onclick="viewReservations()">
-                                        <i class="bi bi-clipboard-check me-2"></i>Mis Reservas
-                                        <small class="d-block text-muted">Historial y reservas activas</small>
-                                    </button>
-                                </div>
-                            </div>
+                        </div>
+
+                        <!-- Cuarta fila de botones -->
+                        <div class="row g-3 mt-2">
                             <div class="col-md-6">
                                 <div class="d-grid">
                                     <a href="../../public/index.php?controller=rutes&action=index" class="btn btn-outline-dark btn-lg rounded-3">
@@ -307,85 +291,6 @@ $userPreferences = $userPreferences ?? [
                     </div>
                 </div>
 
-                <!-- Modal Les Meves Rutes -->
-                <div class="modal fade" id="routesListModal" tabindex="-1">
-                    <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">
-                                    <i class="bi bi-list-check me-2"></i>Les Meves Rutes
-                                </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <?php if (!empty($userRoutes)): ?>
-                                    <div class="table-responsive">
-                                        <table class="table table-hover">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th>Data</th>
-                                                    <th>Horari</th>
-                                                    <th>Ruta</th>
-                                                    <th>Vehicle</th>
-                                                    <th>Places Restants</th>
-                                                    <th>Preu</th>
-                                                    <th>Accions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <?php
-                                                $reservaModel = new ReservaModel();
-                                                foreach ($userRoutes as $ruta):
-                                                    $reservadas = $reservaModel->getReservedSeats($ruta['id']);
-                                                    $plazasRestantes = $ruta['plazas_disponibles'] - $reservadas;
-                                                ?>
-                                                    <tr>
-                                                        <td><?php echo date('d/m/Y', strtotime($ruta['data_ruta'])); ?></td>
-                                                        <td>
-                                                            <?php echo substr($ruta['hora_inici'], 0, 5); ?> - 
-                                                            <?php echo substr($ruta['hora_fi'], 0, 5); ?>
-                                                        </td>
-                                                        <td>
-                                                            <small class="d-block">
-                                                                <i class="bi bi-geo-alt text-success"></i> 
-                                                                <?php echo htmlspecialchars($ruta['origen']); ?>
-                                                            </small>
-                                                            <small class="d-block">
-                                                                <i class="bi bi-geo-alt-fill text-danger"></i> 
-                                                                <?php echo htmlspecialchars($ruta['desti']); ?>
-                                                            </small>
-                                                        </td>
-                                                        <td><?php echo htmlspecialchars($ruta['vehicle_name']); ?></td>
-                                                        <td class="text-center"><?php echo $plazasRestantes; ?></td>
-                                                        <td><?php echo number_format($ruta['precio_euros'], 2); ?>€</td>
-                                                        <td>
-                                                            <!-- Botón Editar -->
-                                                            <button class="btn btn-sm btn-outline-primary me-1 editRutaBtn" 
-                                                                    data-id="<?php echo $ruta['id']; ?>">
-                                                                <i class="bi bi-pencil"></i>
-                                                            </button>
-                                                            <!-- Botón Eliminar -->
-                                                            <button class="btn btn-sm btn-outline-danger deleteRutaBtn" 
-                                                                    data-id="<?php echo $ruta['id']; ?>">
-                                                                <i class="bi bi-trash"></i>
-                                                            </button>
-                                                        </td>
-                                                    </tr>
-                                                <?php endforeach; ?>
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                <?php else: ?>
-                                    <div class="alert alert-info">
-                                        <i class="bi bi-info-circle me-2"></i>
-                                        Encara no tens cap ruta programada.
-                                    </div>
-                                <?php endif; ?>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Modal Editar Ruta -->
                 <div class="modal fade" id="editRutaModal" tabindex="-1">
                     <div class="modal-dialog">
@@ -461,11 +366,6 @@ $userPreferences = $userPreferences ?? [
             }, 1000);
         }
         
-        // View Reservations
-        function viewReservations() {
-            const modal = new bootstrap.Modal(document.getElementById('rentalHistoryModal'));
-            modal.show();
-        }
     </script>
 
     <!-- Modal de Configuración -->
@@ -629,55 +529,6 @@ $userPreferences = $userPreferences ?? [
                 <div class="modal-body">
                     <div id="rentModalContent">
                         <!-- Contenido dinámico del alquiler -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Historial de Lloguers -->
-    <div class="modal fade" id="rentalHistoryModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-calendar-check me-2"></i>Historial de Lloguers
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="list-group">
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">Ford Focus</h6>
-                                    <p class="mb-1 text-muted">25/09/2024 - 3 hores</p>
-                                </div>
-                                <span class="badge bg-success">€54.00</span>
-                            </div>
-                        </div>
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">Tesla Model 3</h6>
-                                    <p class="mb-1 text-muted">20/09/2024 - 2 hores</p>
-                                </div>
-                                <span class="badge bg-success">€70.00</span>
-                            </div>
-                        </div>
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">Seat Ibiza</h6>
-                                    <p class="mb-1 text-muted">15/09/2024 - 4 hores</p>
-                                </div>
-                                <span class="badge bg-success">€48.00</span>
-                            </div>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="text-center">
-                        <strong>Total gastat aquest mes: €172.00</strong>
                     </div>
                 </div>
             </div>
@@ -972,42 +823,6 @@ $userPreferences = $userPreferences ?? [
             showInfoModal('Detalls de la Ruta', 'Implementació pendent...');
         }
     </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // EDITAR
-            document.querySelectorAll('.editRutaBtn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const rutaId = this.dataset.id;
-                    fetch(`../../public/index.php?controller=horaris&action=editModal&id=${rutaId}`)
-                        .then(res => res.text())
-                        .then(html => {
-                            document.getElementById('editRutaContent').innerHTML = html;
-                            new bootstrap.Modal(document.getElementById('editRutaModal')).show();
-                        });
-                });
-            });
-
-            // ELIMINAR
-            document.querySelectorAll('.deleteRutaBtn').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const rutaId = this.dataset.id;
-                    if (confirm('Estàs segur que vols eliminar aquesta ruta?')) {
-                        fetch(`../../public/index.php?controller=horaris&action=deleteAjax&id=${rutaId}`, { method: 'POST' })
-                            .then(res => res.json())
-                            .then(data => {
-                                if (data.success) {
-                                    // Remover fila de la tabla
-                                    btn.closest('tr').remove();
-                                } else {
-                                    alert('Error al eliminar la ruta.');
-                                }
-                            });
-                    }
-                });
-            });
-        });
-        </script>
 
 </body>
 </html>

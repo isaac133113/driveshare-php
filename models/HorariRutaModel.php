@@ -86,15 +86,20 @@ class HorariRutaModel {
 
     public function getAllRutes() {
         $sql = "SELECT hr.*, 
-                    v.marca_model AS vehicle_name,
-                    v.tipus AS tipus,
+                    u.nom, u.cognoms,
+                    COALESCE(v.marca_model, hr.vehicle) AS vehicle_name,
+                    COALESCE(v.tipus, 'No especificat') AS tipus,
                     vi.url AS vehicle_image,
-                    COALESCE(hr.plazas_disponibles - SUM(r.plazas), hr.plazas_disponibles) AS plazas_restantes
+                    COALESCE(hr.plazas_disponibles, 4) AS plazas_disponibles,
+                    COALESCE(hr.plazas_disponibles - SUM(r.plazas), hr.plazas_disponibles, 4) AS plazas_restantes,
+                    COALESCE(hr.precio_euros, 0) AS precio_euros,
+                    COALESCE(hr.estado, 1) AS estado
                 FROM horaris_rutes hr
+                JOIN usuaris u ON hr.user_id = u.id
                 LEFT JOIN vehicles v ON hr.vehicle_id = v.id
                 LEFT JOIN vehicle_images vi ON v.id = vi.vehicle_id AND vi.orden = 0
                 LEFT JOIN reservas r ON hr.id = r.ruta_id
-                WHERE hr.estado = 1
+                WHERE COALESCE(hr.estado, 1) = 1
                 GROUP BY hr.id
                 ORDER BY hr.data_ruta DESC, hr.hora_inici ASC";
 

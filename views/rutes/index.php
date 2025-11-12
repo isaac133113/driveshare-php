@@ -21,8 +21,11 @@
                             <h2 class="fw-bold text-dark mb-0">
                                 <i class="bi bi-map text-warning me-2"></i>Veure Rutes
                             </h2>
-                            <p class="text-muted mb-0">Explora rutes d'altres usuaris</p>
+                            <p class="text-muted mb-0">Explora i reserva rutes d'altres usuaris</p>
                         </div>
+                        <a href="../../public/index.php?controller=horaris&action=index" class="btn btn-success rounded-3">
+                            <i class="bi bi-calendar-plus me-2"></i>Les Meves Reserves
+                        </a>
                     </div>
                 </div>
             </div>

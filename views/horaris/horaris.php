@@ -191,10 +191,10 @@ $myReservations = $myReservations ?? [];
                                                 </td>
                                                 <td>
                                                     <div class="btn-group btn-group-sm">
-                                                        <a href="?edit=<?php echo $row['id']; ?>" class="btn btn-outline-primary btn-sm" title="Editar">
+                                                        <a href="../../public/index.php?controller=horaris&action=index&edit=<?php echo $row['id']; ?>" class="btn btn-outline-primary btn-sm" title="Editar">
                                                             <i class="bi bi-pencil"></i>
                                                         </a>
-                                                        <a href="?delete=<?php echo $row['id']; ?>" 
+                                                        <a href="../../public/index.php?controller=horaris&action=index&delete=<?php echo $row['id']; ?>" 
                                                            class="btn btn-outline-danger btn-sm" title="Eliminar"
                                                            onclick="return confirm('Estàs segur que vols eliminar aquest horari?')">
                                                             <i class="bi bi-trash"></i>
@@ -320,7 +320,7 @@ $myReservations = $myReservations ?? [];
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form method="post">
+                <form method="post" action="../../public/index.php?controller=horaris&action=index">
                     <div class="modal-body">
                         <input type="hidden" name="action" value="<?php echo $editingHorari ? 'update' : 'create'; ?>">
                         <?php if ($editingHorari): ?>
