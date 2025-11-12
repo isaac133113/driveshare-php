@@ -93,27 +93,34 @@ class VehicleModel {
     }
 
     public function create($data) {
-        $stmt = $this->db->prepare("INSERT INTO vehicles (user_id, marca_model, tipus, places, transmissio, preu_hora, descripcio, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())");
-        $stmt->bind_param("ississs",
+        $stmt = $this->db->prepare(
+            "INSERT INTO vehicles (user_id, marca_model, tipus, places, transmissio, descripcio, created_at) 
+            VALUES (?, ?, ?, ?, ?, ?, NOW())"
+        );
+        $stmt->bind_param(
+            "ississ",
             $data['user_id'],
             $data['marca_model'],
             $data['tipus'],
             $data['places'],
             $data['transmissio'],
-            $data['preu_hora'],
             $data['descripcio']
         );
         return $stmt->execute();
     }
 
     public function update($data) {
-        $stmt = $this->db->prepare("UPDATE vehicles SET marca_model = ?, tipus = ?, places = ?, transmissio = ?, preu_hora = ?, descripcio = ? WHERE id = ? AND user_id = ?");
-        $stmt->bind_param("ssisssii",
+        $stmt = $this->db->prepare(
+            "UPDATE vehicles 
+            SET marca_model = ?, tipus = ?, places = ?, transmissio = ?, descripcio = ? 
+            WHERE id = ? AND user_id = ?"
+        );
+        $stmt->bind_param(
+            "ssissii",
             $data['marca_model'],
             $data['tipus'],
             $data['places'],
             $data['transmissio'],
-            $data['preu_hora'],
             $data['descripcio'],
             $data['id'],
             $data['user_id']

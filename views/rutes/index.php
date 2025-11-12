@@ -92,7 +92,7 @@
                             <div class="card border-0 shadow-lg rounded-4 h-100">
                                 <!-- Imagen del vehículo -->
                                 <?php if (!empty($ruta['vehicle_image'])): ?>
-                                    <img src="<?= htmlspecialchars($ruta['vehicle_image']); ?>" 
+                                    <img src="<?= htmlspecialchars('/' . $ruta['vehicle_image']); ?>" 
                                         class="card-img-top rounded-top-4"
                                         alt="<?= htmlspecialchars($ruta['vehicle']); ?>"
                                         style="height: 200px; object-fit: cover;">

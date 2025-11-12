@@ -352,5 +352,12 @@ class UserModel {
             return true;
         }
     }
+
+    public function updateSaldo($userId, $newSaldo) {
+        $stmt = $this->db->prepare("UPDATE usuaris SET saldo = ? WHERE id = ?");
+        $stmt->bind_param("di", $newSaldo, $userId);
+        return $stmt->execute();
+    }
+
 }
 ?>
