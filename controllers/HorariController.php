@@ -29,7 +29,7 @@ class HorariController extends BaseController {
 
         // Manejar eliminación
         if (isset($_GET['delete']) && is_numeric($_GET['delete'])) {
-            $this->deleteHorari($_GET['delete']);
+        //    $this->deleteHorari($_GET['delete']);
         }
 
         // Obtener mensajes flash
@@ -70,24 +70,44 @@ class HorariController extends BaseController {
         }
     }
     
-    private function createHorari() {
-        $data = [
-            'user_id' => $_SESSION['user_id'],
-            'data_ruta' => $this->sanitizeInput($_POST['data_ruta']),
-            'hora_inici' => $this->sanitizeInput($_POST['hora_inici']),
-            'hora_fi' => $this->sanitizeInput($_POST['hora_fi']),
-            'origen' => $this->sanitizeInput($_POST['origen']),
-            'desti' => $this->sanitizeInput($_POST['desti']),
-            'vehicle' => $this->sanitizeInput($_POST['vehicle']),
-            'comentaris' => $this->sanitizeInput($_POST['comentaris'])
-        ];
-        
-        if ($this->horariModel->createHorari($data)) {
-            $this->redirectWithMessage('horaris.php?created=1', 'Horari creat correctament!', 'success');
-        } else {
-            $this->redirectWithMessage('horaris.php?error=create', 'Error al crear l\'horari', 'danger');
-        }
+   private function createHorari() {
+    // Asegurarse de que la sesión tenga user_id válido
+    $userId = $_SESSION['user_id'] ?? 0;
+    if ($userId === 0) {
+        $this->redirectWithMessage(
+            'index.php?controller=horaris&action=index&error=create',
+            'Error: usuario no autenticado',
+            'danger'
+        );
+        return;
     }
+
+    $data = [
+        'user_id' => $userId, // <-- usar siempre SESSION
+        'data_ruta' => $this->sanitizeInput($_POST['data_ruta']),
+        'hora_inici' => $this->sanitizeInput($_POST['hora_inici']),
+        'hora_fi' => $this->sanitizeInput($_POST['hora_fi']),
+        'origen' => $this->sanitizeInput($_POST['origen']),
+        'desti' => $this->sanitizeInput($_POST['desti']),
+        'vehicle' => $this->sanitizeInput($_POST['vehicle']),
+        'comentaris' => $this->sanitizeInput($_POST['comentaris'])
+    ];
+    
+    if ($this->horariModel->createHorari($data)) {
+        $this->redirectWithMessage(
+            'index.php?controller=horaris&action=index&created=1',
+            'Ruta creada correctament!',
+            'success'
+        );
+    } else {
+        $this->redirectWithMessage(
+            'index.php?controller=horaris&action=index&error=create',
+            'Error al crear la ruta',
+            'danger'
+        );
+    }
+}
+
     
     private function updateHorari() {
         $data = [
@@ -103,19 +123,20 @@ class HorariController extends BaseController {
         $id = (int)$_POST['id'];
         
         if ($this->horariModel->updateHorari($id, $_SESSION['user_id'], $data)) {
-            $this->redirectWithMessage('horaris.php?updated=1', 'Horari actualitzat correctament!', 'success');
+            $this->redirectWithMessage(
+                'index.php?controller=horaris&action=index&updated=1',
+                'Horari actualitzat correctament!',
+                'success'
+            );
         } else {
-            $this->redirectWithMessage('horaris.php?error=update', 'Error al actualitzar l\'horari', 'danger');
+            $this->redirectWithMessage(
+                'index.php?controller=horaris&action=index&error=update',
+                'Error al actualitzar l\'horari',
+                'danger'
+            );
         }
     }
-    
-    private function deleteHorari($id) {
-        if ($this->horariModel->deleteHorari($id, $_SESSION['user_id'])) {
-            $this->redirectWithMessage('horaris.php?deleted=1', 'Horari eliminat correctament!', 'success');
-        } else {
-            $this->redirectWithMessage('horaris.php?error=delete', 'Error al eliminar l\'horari', 'danger');
-        }
-    }
+
     
     private function getMessageFromQuery(&$messageType) {
         if (isset($_GET['created']) && $_GET['created'] == '1') {
@@ -136,17 +157,12 @@ class HorariController extends BaseController {
         if (isset($_GET['error'])) {
             $messageType = 'danger';
             switch ($_GET['error']) {
-                case 'create':
-                    return 'Error al crear l\'horari.';
-                case 'update':
-                    return 'Error al actualitzar l\'horari.';
-                case 'delete':
-                    return 'Error al eliminar l\'horari.';
-                default:
-                    return 'S\'ha produït un error.';
+                case 'create': return 'Error al crear l\'horari.';
+                case 'update': return 'Error al actualitzar l\'horari.';
+                case 'delete': return 'Error al eliminar l\'horari.';
+                default: return 'S\'ha produït un error.';
             }
         }
-        
         return '';
     }
     
@@ -211,3 +227,4 @@ class HorariController extends BaseController {
         exit;
     }
 }
+?>

@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/../../config/config.php';
 
 $message = $message ?? '';
 $messageType = $messageType ?? '';
@@ -42,7 +43,7 @@ $allHoraris = $allHoraris ?? [];
                                 </p>
                             </div>
                             <button class="btn btn-primary rounded-3" data-bs-toggle="modal" data-bs-target="#horariModal">
-                                <i class="bi bi-plus-circle me-2"></i>Nou Horari
+                                <i class="bi bi-plus-circle me-2"></i>Crear nova ruta
                             </button>
                         </div>
                     </div>
@@ -190,10 +191,10 @@ $allHoraris = $allHoraris ?? [];
                                                 </td>
                                                 <td>
                                                     <div class="btn-group btn-group-sm">
-                                                        <a href="?edit=<?php echo $row['id']; ?>" class="btn btn-outline-primary btn-sm" title="Editar">
+                                                        <a href="<?php echo BASE_URL; ?>index.php?controller=horaris&action=index&edit=<?php echo $row['id']; ?>" class="btn btn-outline-primary btn-sm" title="Editar">
                                                             <i class="bi bi-pencil"></i>
                                                         </a>
-                                                        <a href="?delete=<?php echo $row['id']; ?>" 
+                                                        <a href="<?php echo BASE_URL; ?>index.php?controller=horaris&action=index&delete=<?php echo $row['id']; ?>" 
                                                            class="btn btn-outline-danger btn-sm" title="Eliminar"
                                                            onclick="return confirm('Estàs segur que vols eliminar aquest horari?')">
                                                             <i class="bi bi-trash"></i>
@@ -208,8 +209,8 @@ $allHoraris = $allHoraris ?? [];
                         <?php else: ?>
                             <div class="text-center py-5">
                                 <i class="bi bi-calendar-x text-muted display-4"></i>
-                                <h5 class="text-muted mt-3">No tens cap horari creat</h5>
-                                <p class="text-muted">Fes clic a "Nou Horari" per crear el teu primer horari</p>
+                                <h5 class="text-muted mt-3">No tens cap ruta creada</h5>
+                                <p class="text-muted">Fes clic a "Crear nova ruta" per crear la teva primera ruta</p>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -236,11 +237,11 @@ $allHoraris = $allHoraris ?? [];
                         </div>
                         
                         <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                            <a href="../../index.php?controller=rutes&action=index" class="btn btn-warning btn-lg px-4 me-md-2">
+                            <a href="<?php echo BASE_URL; ?>index.php?controller=rutes&action=index" class="btn btn-warning btn-lg px-4 me-md-2">
                                 <i class="bi bi-search me-2"></i>
                                 Veure rutes disponibles
                             </a>
-                            <a href="../../index.php?controller=dashboard&action=index" class="btn btn-outline-secondary btn-lg px-4">
+                            <a href="<?php echo BASE_URL; ?>index.php?controller=dashboard&action=index" class="btn btn-outline-secondary btn-lg px-4">
                                 <i class="bi bi-bookmark-check me-2"></i>
                                 Les meves reserves
                             </a>
@@ -265,11 +266,11 @@ $allHoraris = $allHoraris ?? [];
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <i class="bi bi-calendar-plus me-2"></i>
-                        <?php echo $editingHorari ? 'Editar Horari' : 'Nou Horari'; ?>
+                        <?php echo $editingHorari ? 'Editar Ruta' : 'Nova Ruta'; ?>
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <form method="post">
+                <form method="post" action="../../public/index.php?controller=horaris&action=index">
                     <div class="modal-body">
                         <input type="hidden" name="action" value="<?php echo $editingHorari ? 'update' : 'create'; ?>">
                         <?php if ($editingHorari): ?>
@@ -365,7 +366,7 @@ $allHoraris = $allHoraris ?? [];
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel·lar</button>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle me-1"></i>
-                            <?php echo $editingHorari ? 'Actualitzar' : 'Crear'; ?> Horari
+                            <?php echo $editingHorari ? 'Actualitzar' : 'Crear'; ?> Ruta
                         </button>
                     </div>
                 </form>
