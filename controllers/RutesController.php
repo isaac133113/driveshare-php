@@ -151,7 +151,7 @@ class RutesController extends BaseController {
                 $_SESSION['messageType'] = "success";
             }
 
-            header("Location: " . BASE_URL . "/public/index.php?controller=rutes&action=index");
+            header("Location: " . BASE_URL . "/public/index.php?controller=horaris&action=index");
             exit;
         }
     }

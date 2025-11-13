@@ -22,7 +22,7 @@ $userPreferences = $userPreferences ?? [
 ?>
 
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -31,8 +31,9 @@ $userPreferences = $userPreferences ?? [
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="../../public/css/modern-styles.css" rel="stylesheet">
 </head>
-<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+<body class="gradient-bg" style="min-height: 100vh;">
 
 <?php include __DIR__ . '/../templates/navbar.php'; ?>
 
@@ -40,12 +41,12 @@ $userPreferences = $userPreferences ?? [
         <div class="row justify-content-center">
             <div class="col-lg-8 col-md-10">
                 <!-- Header Card -->
-                <div class="card border-0 shadow-lg rounded-4 mb-4">
+                <div class="glass-card shadow-lg rounded-4 mb-4 fade-in">
                     <div class="card-body p-4">
                         <div class="text-center mb-4">
-                            <i class="bi bi-car-front-fill text-primary display-4"></i>
-                            <h2 class="fw-bold text-dark mt-3">DriveShare</h2>
-                            <p class="text-muted">Renting i Carsharing de vehicles</p>
+                            <i class="bi bi-car-front-fill text-primary display-4 pulse-icon"></i>
+                            <h2 class="fw-bold mt-3 text-gradient" style="font-size: 2.5rem;">DriveShare</h2>
+                            <p class="text-muted" style="font-size: 1.1rem;">Renting i Carsharing de vehicles</p>
                         </div>
                         
                         <div class="d-flex justify-content-between align-items-center">
@@ -128,27 +129,25 @@ $userPreferences = $userPreferences ?? [
                 </div>
 
                 <!-- Vehicle Fleet -->
-                <div class="card border-0 shadow-lg rounded-4">
-                    <div class="card-header bg-dark text-white rounded-top-4">
-                        <h5 class="mb-0">
-                            <i class="bi bi-car-front me-2"></i>Menú
-                        </h5>
-                    </div>
+                <div class="glass-card shadow-lg rounded-4">
                     <div class="card-body p-4">
+                        <h5 class="mb-4 fw-bold text-dark">
+                            <i class="bi bi-grid-3x3-gap-fill me-2 text-primary"></i>Menú
+                        </h5>
                         <div class="row g-3">
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <a href="../../public/index.php?controller=horaris&action=index" class="btn btn-outline-secondary btn-lg rounded-3">
-                                        <i class="bi bi-calendar-week me-2"></i>Gestionar Rutes
-                                        <small class="d-block text-muted">Organitza les teves rutes</small>
+                                    <a href="../../public/index.php?controller=horaris&action=index" class="btn btn-light border-2 btn-lg rounded-3 shadow-sm dashboard-menu-btn">
+                                        <i class="bi bi-calendar-week me-2 text-primary"></i><strong>Gestionar Rutes</strong>
+                                        <small class="d-block text-muted mt-1">Organitza les teves rutes</small>
                                     </a>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <a href="../../public/index.php?controller=vehicle&action=index" class="btn btn-outline-primary btn-lg rounded-3">
-                                        <i class="bi bi-car-front me-2"></i>Els Meus Vehicles
-                                        <small class="d-block text-muted">Gestiona els teus vehicles</small>
+                                    <a href="../../public/index.php?controller=vehicle&action=index" class="btn btn-light border-2 btn-lg rounded-3 shadow-sm dashboard-menu-btn">
+                                        <i class="bi bi-car-front me-2 text-primary"></i><strong>Els Meus Vehicles</strong>
+                                        <small class="d-block text-muted mt-1">Gestiona els teus vehicles</small>
                                     </a>
                                 </div>
                             </div>
@@ -158,48 +157,33 @@ $userPreferences = $userPreferences ?? [
                         <div class="row g-3 mt-2">
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <button type="button" class="btn btn-outline-success btn-lg rounded-3" data-bs-toggle="modal" data-bs-target="#newRouteModal">
-                                        <i class="bi bi-map me-2"></i>Nova Ruta
-                                        <small class="d-block text-muted">Programa un nou viatge</small>
-                                    </button>
+                                    <a href="../../buscar-coche.php" class="btn btn-light border-2 btn-lg rounded-3 shadow-sm dashboard-menu-btn">
+                                        <i class="bi bi-geo-alt me-2 text-warning"></i><strong>Buscar Coche Cercano</strong>
+                                        <small class="d-block text-muted mt-1">Mapa interactivo con ubicaciones</small>
+                                    </a>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <a href="../../buscar-coche.php" class="btn btn-outline-warning btn-lg rounded-3">
-                                        <i class="bi bi-geo-alt me-2"></i>Buscar Coche Cercano
-                                        <small class="d-block text-muted">Mapa interactivo con ubicaciones</small>
+                                    <a href="../../public/index.php?controller=rutes&action=index" class="btn btn-light border-2 btn-lg rounded-3 shadow-sm dashboard-menu-btn">
+                                        <i class="bi bi-map me-2 text-success"></i><strong>Veure rutes</strong>
+                                        <small class="d-block text-muted mt-1">Explora rutes disponibles</small>
                                     </a>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Cuarta fila de botones -->
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-6">
-                                <div class="d-grid">
-                                    <a href="../../public/index.php?controller=rutes&action=index" class="btn btn-outline-dark btn-lg rounded-3">
-                                        <i class="bi bi-map me-2"></i>Veure rutes
-                                        <small class="d-block text-muted">Explora rutes disponibles</small>
-                                    </a>
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-grid">
-                                    <button class="btn btn-outline-dark btn-lg rounded-3" onclick="viewReservations()">
-                                        <i class="bi bi-clipboard-check me-2"></i>Mis Reservas
-                                        <small class="d-block text-muted">Historial y reservas activas</small>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        <!-- Cuarta fila de botones -->
-                        <div class="row g-3 mt-2">
-                            <div class="col-md-6">
-                                <div class="d-grid">
-                                    <a href="../../public/index.php?controller=rutes&action=index" class="btn btn-outline-primary btn-lg rounded-3">
-                                        <i class="bi bi-search me-2"></i>Veure rutes
-                                        <small class="d-block text-muted">Explora rutes d'altres usuaris</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- DriveShare Interactive Functions -->
+    <script>
                                     </a>
                                 </div>
                             </div>
@@ -936,6 +920,38 @@ $userPreferences = $userPreferences ?? [
             // Aquí puedes implementar la lógica para mostrar los detalles
             showInfoModal('Detalls de la Ruta', 'Implementació pendent...');
         }
+
+        // Dark Mode Toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const darkModeIcon = document.getElementById('darkModeIcon');
+        const html = document.documentElement;
+        
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        updateDarkModeIcon(savedTheme);
+        
+        darkModeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateDarkModeIcon(newTheme);
+        });
+        
+        function updateDarkModeIcon(theme) {
+            if (theme === 'dark') {
+                darkModeIcon.classList.remove('bi-moon-stars');
+                darkModeIcon.classList.add('bi-sun-fill');
+            } else {
+                darkModeIcon.classList.remove('bi-sun-fill');
+                darkModeIcon.classList.add('bi-moon-stars');
+            }
+        }
     </script>
+
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle Dark Mode">
+        <i class="bi bi-moon-stars fs-4" id="darkModeIcon"></i>
+    </button>
 </body>
 </html>

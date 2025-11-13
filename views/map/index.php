@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,20 +8,21 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link href="../../public/css/modern-styles.css" rel="stylesheet">
 </head>
-<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+<body class="gradient-bg" style="min-height: 100vh;">
     <?php include '../templates/navbar.php'; ?>
 
     <div class="container-fluid py-5">
         <div class="row justify-content-center">
             <div class="col-lg-11">
                 <!-- Header Card -->
-                <div class="card border-0 shadow-lg rounded-4 mb-4">
+                <div class="glass-card shadow-lg rounded-4 mb-4 fade-in">
                     <div class="card-body p-4">
                         <div class="text-center mb-4">
-                            <i class="bi bi-geo-alt-fill text-primary display-4"></i>
-                            <h2 class="fw-bold text-dark mt-3">Buscar Coche Cercano</h2>
-                            <p class="text-muted">Encuentra el vehículo más cercano a tu ubicación</p>
+                            <i class="bi bi-geo-alt-fill text-primary display-4 pulse-icon"></i>
+                            <h2 class="fw-bold mt-3 text-gradient" style="font-size: 2.5rem;">Buscar Coche Cercano</h2>
+                            <p class="text-muted" style="font-size: 1.1rem;">Encuentra el vehículo más cercano a tu ubicación</p>
                         </div>
                     </div>
                 </div>
@@ -807,6 +808,38 @@
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
         });
+
+        // Dark Mode Toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const darkModeIcon = document.getElementById('darkModeIcon');
+        const html = document.documentElement;
+        
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        updateDarkModeIcon(savedTheme);
+        
+        darkModeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateDarkModeIcon(newTheme);
+        });
+        
+        function updateDarkModeIcon(theme) {
+            if (theme === 'dark') {
+                darkModeIcon.classList.remove('bi-moon-stars');
+                darkModeIcon.classList.add('bi-sun-fill');
+            } else {
+                darkModeIcon.classList.remove('bi-sun-fill');
+                darkModeIcon.classList.add('bi-moon-stars');
+            }
+        }
     </script>
+
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle Dark Mode">
+        <i class="bi bi-moon-stars fs-4" id="darkModeIcon"></i>
+    </button>
 </body>
 </html>

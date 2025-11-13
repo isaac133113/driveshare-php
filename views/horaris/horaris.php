@@ -9,7 +9,7 @@ $myReservations = $myReservations ?? [];
 ?>
 
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,29 +20,31 @@ $myReservations = $myReservations ?? [];
     <!-- DataTables CSS con tema Bootstrap -->
     <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.bootstrap5.min.css" rel="stylesheet">
+    <!-- Modern Styles -->
+    <link href="../../public/css/modern-styles.css" rel="stylesheet">
     <!-- Estilos personalizados para Horaris -->
     <link href="../../public/css/horaris.css" rel="stylesheet">
 </head>
-<body>
+<body class="gradient-bg" style="min-height: 100vh;">
     <?php include __DIR__ . '/../templates/navbar.php'; ?>
 
     <div class="container py-4">
         <!-- Header -->
         <div class="row mb-4">
             <div class="col">
-                <div class="card border-0 shadow-lg rounded-4">
+                <div class="glass-card shadow-lg rounded-4 fade-in">
                     <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                             <div>
-                                <h2 class="fw-bold text-dark mb-1">
-                                    <i class="bi bi-calendar-week text-primary me-2"></i>
+                                <h2 class="fw-bold mb-0 text-gradient" style="font-size: 2rem;">
+                                    <i class="bi bi-calendar-week text-primary me-2 pulse-icon"></i>
                                     Gestió i Rutes
                                 </h2>
-                                <p class="text-muted mb-0">
+                                <p class="text-muted mb-0 mt-2" style="font-size: 1.1rem;">
                                     Organitza els teus desplaçaments i consulta els d'altres usuaris
                                 </p>
                             </div>
-                            <button class="btn btn-primary rounded-3" data-bs-toggle="modal" data-bs-target="#horariModal">
+                            <button class="btn btn-primary btn-modern shadow" data-bs-toggle="modal" data-bs-target="#horariModal">
                                 <i class="bi bi-plus-circle me-2"></i>Nou Horari
                             </button>
                         </div>
@@ -61,23 +63,23 @@ $myReservations = $myReservations ?? [];
         <?php endif; ?>
 
         <!-- Tabs -->
-        <ul class="nav nav-tabs nav-fill mb-4" id="horariTabs" role="tablist">
+        <ul class="nav nav-tabs nav-fill mb-4" id="horariTabs" role="tablist" style="position: relative; z-index: 10;">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="my-horaris-tab" data-bs-toggle="tab" data-bs-target="#my-horaris" type="button">
+                <button class="nav-link active" id="my-horaris-tab" data-bs-toggle="tab" data-bs-target="#my-horaris" type="button" role="tab" aria-controls="my-horaris" aria-selected="true" style="cursor: pointer; pointer-events: auto;">
                     <i class="bi bi-plus-circle me-2"></i>Rutes creades
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="all-horaris-tab" data-bs-toggle="tab" data-bs-target="#all-horaris" type="button">
+                <button class="nav-link" id="all-horaris-tab" data-bs-toggle="tab" data-bs-target="#all-horaris" type="button" role="tab" aria-controls="all-horaris" aria-selected="false" style="cursor: pointer; pointer-events: auto;">
                     <i class="bi bi-bookmark-check me-2"></i>Rutes reservades
                 </button>
             </li>
         </ul>
 
         <!-- Filtros Dinámicos -->
-        <div class="card filter-card rounded-4 mb-4">
+        <div class="glass-card filter-card rounded-4 mb-4 fade-in" style="animation-delay: 0.1s;">
             <div class="card-header bg-transparent border-0 p-3">
-                <div class="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#filterPanel">
+                <div class="d-flex justify-content-between align-items-center filter-toggle" data-bs-toggle="collapse" data-bs-target="#filterPanel" style="cursor: pointer;">
                     <h6 class="mb-0 fw-semibold">
                         <i class="bi bi-funnel me-2 text-primary"></i>Filtres Avançats
                     </h6>
@@ -136,9 +138,9 @@ $myReservations = $myReservations ?? [];
         <div class="tab-content" id="horariTabsContent">
             <!-- Rutes creades -->
             <div class="tab-pane fade show active" id="my-horaris" role="tabpanel">
-                <div class="card border-0 shadow rounded-4">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">
+                <div class="glass-card border-0 shadow-lg rounded-4">
+                    <div class="card-header border-0 rounded-top-4 p-3" style="background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);">
+                        <h5 class="mb-0 text-white fw-bold">
                             <i class="bi bi-plus-circle me-2"></i>Les teves Rutes creades
                         </h5>
                     </div>
@@ -219,9 +221,9 @@ $myReservations = $myReservations ?? [];
 
             <!-- Rutes reservades -->
             <div class="tab-pane fade" id="all-horaris" role="tabpanel">
-                <div class="card border-0 shadow rounded-4">
-                    <div class="card-header bg-dark text-white">
-                        <h5 class="mb-0">
+                <div class="glass-card border-0 shadow-lg rounded-4">
+                    <div class="card-header border-0 rounded-top-4 p-3" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);">
+                        <h5 class="mb-0 text-white fw-bold">
                             <i class="bi bi-bookmark-check me-2"></i>Les teves Rutes reservades
                         </h5>
                     </div>
@@ -464,6 +466,29 @@ $myReservations = $myReservations ?? [];
             
             // Inicializar DataTables para ambas tablas
             initDataTables();
+            
+            // Event listener para tabs - redibuja las tablas al cambiar de pestaña
+            const tabButtons = document.querySelectorAll('button[data-bs-toggle="tab"]');
+            console.log('📋 Pestanyes trobades:', tabButtons.length);
+            
+            tabButtons.forEach((button, index) => {
+                console.log(`Pestanya ${index}:`, button.id);
+                
+                // Click event como fallback
+                button.addEventListener('click', function(e) {
+                    console.log('🖱️ Click detectat a:', this.id);
+                });
+                
+                // Bootstrap tab event
+                button.addEventListener('shown.bs.tab', function (event) {
+                    console.log('✓ Pestanya mostrada:', event.target.id);
+                    // Redibuja todas las DataTables cuando se cambia de pestaña
+                    setTimeout(() => {
+                        $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+                        console.log('✓ Taules ajustades');
+                    }, 100);
+                });
+            });
             
             console.log('🎯 Sistema inicializado completamente');
         });
@@ -896,5 +921,39 @@ $myReservations = $myReservations ?? [];
         });
     </script>
     <?php endif; ?>
+
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle Dark Mode">
+        <i class="bi bi-moon-stars fs-4" id="darkModeIcon"></i>
+    </button>
+
+    <script>
+        // Dark Mode Toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const darkModeIcon = document.getElementById('darkModeIcon');
+        const html = document.documentElement;
+        
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        updateDarkModeIcon(savedTheme);
+        
+        darkModeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateDarkModeIcon(newTheme);
+        });
+        
+        function updateDarkModeIcon(theme) {
+            if (theme === 'dark') {
+                darkModeIcon.classList.remove('bi-moon-stars');
+                darkModeIcon.classList.add('bi-sun-fill');
+            } else {
+                darkModeIcon.classList.remove('bi-sun-fill');
+                darkModeIcon.classList.add('bi-moon-stars');
+            }
+        }
+    </script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="ca">
+<html lang="ca" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,8 +7,9 @@
     <!-- Bootstrap CSS CDN -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../../public/css/modern-styles.css" rel="stylesheet">
 </head>
-<body style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh;">
+<body class="gradient-bg" style="min-height: 100vh;">
     <!-- Navbar -->
 <?php include_once __DIR__ . "/../templates/navbar.php" ?>
 
@@ -16,16 +17,16 @@
         <div class="row justify-content-center">
             <div class="col-lg-10">
                 <!-- Header Card -->
-                <div class="card border-0 shadow-lg rounded-4 mb-4">
+                <div class="glass-card shadow-lg rounded-4 mb-4 fade-in">
                     <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center">
+                        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
                             <div>
-                                <h2 class="fw-bold text-dark mb-0">
-                                    <i class="bi bi-car-front-fill text-primary me-2"></i>Els Meus Vehicles
+                                <h2 class="fw-bold mb-0 text-gradient" style="font-size: 2rem;">
+                                    <i class="bi bi-car-front-fill text-primary me-2 pulse-icon"></i>Els Meus Vehicles
                                 </h2>
-                                <p class="text-muted mb-0">Gestiona els teus vehicles registrats</p>
+                                <p class="text-muted mb-0 mt-2" style="font-size: 1.1rem;">Gestiona els teus vehicles registrats</p>
                             </div>
-                            <button class="btn btn-primary rounded-3" data-bs-toggle="modal" data-bs-target="#vehicleModal">
+                            <button class="btn btn-primary btn-modern shadow" data-bs-toggle="modal" data-bs-target="#vehicleModal">
                                 <i class="bi bi-plus-lg me-2"></i>Afegir Vehicle
                             </button>
                         </div>
@@ -44,9 +45,9 @@
                 <!-- Lista de vehículos -->
                 <div class="row g-4">
                     <?php if (!empty($userVehicles)): ?>
-                        <?php foreach ($userVehicles as $vehicle): ?>
-                            <div class="col-md-6 col-lg-4">
-                                <div class="card border-0 shadow-lg rounded-4 h-100">
+                        <?php foreach ($userVehicles as $index => $vehicle): ?>
+                            <div class="col-md-6 col-lg-4 stagger-item">
+                                <div class="modern-card route-card h-100">
                                     <!-- Imagen del vehículo -->
                                     <?php if (!empty($vehicle['images'])): ?>
                                         <img src="<?php echo htmlspecialchars('/' . $vehicle['images'][0]); ?>" 
@@ -259,8 +260,41 @@
         </div>
     </div>
 
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle Dark Mode">
+        <i class="bi bi-moon-stars fs-4" id="darkModeIcon"></i>
+    </button>
+
     <!-- Bootstrap Bundle & Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Dark Mode Toggle
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        const darkModeIcon = document.getElementById('darkModeIcon');
+        const html = document.documentElement;
+        
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        updateDarkModeIcon(savedTheme);
+        
+        darkModeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateDarkModeIcon(newTheme);
+        });
+        
+        function updateDarkModeIcon(theme) {
+            if (theme === 'dark') {
+                darkModeIcon.classList.remove('bi-moon-stars');
+                darkModeIcon.classList.add('bi-sun-fill');
+            } else {
+                darkModeIcon.classList.remove('bi-sun-fill');
+                darkModeIcon.classList.add('bi-moon-stars');
+            }
+        }
+    </script>
     <script>
         // Editar vehículo
         function editVehicle(vehicle) {
