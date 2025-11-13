@@ -166,21 +166,21 @@ $userPreferences = $userPreferences ?? [
                             </div>
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <button type="button" class="btn btn-outline-info btn-lg rounded-3" data-bs-toggle="modal" data-bs-target="#routesListModal">
-                                        <i class="bi bi-list-check me-2"></i>Les Meves Rutes
-                                        <small class="d-block text-muted">Historial i rutes actives</small>
-                                    </button>
+                                    <a href="../../buscar-coche.php" class="btn btn-outline-warning btn-lg rounded-3">
+                                        <i class="bi bi-geo-alt me-2"></i>Buscar Coche Cercano
+                                        <small class="d-block text-muted">Mapa interactivo con ubicaciones</small>
+                                    </a>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Tercera fila de botones -->
+                        <!-- Cuarta fila de botones -->
                         <div class="row g-3 mt-2">
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <a href="../../buscar-coche.php" class="btn btn-outline-warning btn-lg rounded-3">
-                                        <i class="bi bi-geo-alt me-2"></i>Buscar Coche Cercano
-                                        <small class="d-block text-muted">Mapa interactivo con ubicaciones</small>
+                                    <a href="../../public/index.php?controller=rutes&action=index" class="btn btn-outline-dark btn-lg rounded-3">
+                                        <i class="bi bi-map me-2"></i>Veure rutes
+                                        <small class="d-block text-muted">Explora rutes disponibles</small>
                                     </a>
                                 </div>
                             </div>
@@ -481,11 +481,6 @@ $userPreferences = $userPreferences ?? [
             }, 1000);
         }
         
-        // View Reservations
-        function viewReservations() {
-            const modal = new bootstrap.Modal(document.getElementById('rentalHistoryModal'));
-            modal.show();
-        }
     </script>
 
     <!-- Modal de Configuración -->
@@ -649,55 +644,6 @@ $userPreferences = $userPreferences ?? [
                 <div class="modal-body">
                     <div id="rentModalContent">
                         <!-- Contenido dinámico del alquiler -->
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Historial de Lloguers -->
-    <div class="modal fade" id="rentalHistoryModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="bi bi-calendar-check me-2"></i>Historial de Lloguers
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="list-group">
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">Ford Focus</h6>
-                                    <p class="mb-1 text-muted">25/09/2024 - 3 hores</p>
-                                </div>
-                                <span class="badge bg-success">€54.00</span>
-                            </div>
-                        </div>
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">Tesla Model 3</h6>
-                                    <p class="mb-1 text-muted">20/09/2024 - 2 hores</p>
-                                </div>
-                                <span class="badge bg-success">€70.00</span>
-                            </div>
-                        </div>
-                        <div class="list-group-item">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h6 class="mb-1">Seat Ibiza</h6>
-                                    <p class="mb-1 text-muted">15/09/2024 - 4 hores</p>
-                                </div>
-                                <span class="badge bg-success">€48.00</span>
-                            </div>
-                        </div>
-                    </div>
-                    <hr>
-                    <div class="text-center">
-                        <strong>Total gastat aquest mes: €172.00</strong>
                     </div>
                 </div>
             </div>
