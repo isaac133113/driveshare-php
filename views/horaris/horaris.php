@@ -1,5 +1,4 @@
 <?php
-require_once __DIR__ . '/../../config/config.php';
 
 $message = $message ?? '';
 $messageType = $messageType ?? '';
@@ -44,7 +43,7 @@ $myReservations = $myReservations ?? [];
                                 </p>
                             </div>
                             <button class="btn btn-primary rounded-3" data-bs-toggle="modal" data-bs-target="#horariModal">
-                                <i class="bi bi-plus-circle me-2"></i>Crear nova ruta
+                                <i class="bi bi-plus-circle me-2"></i>Nou Horari
                             </button>
                         </div>
                     </div>
@@ -210,8 +209,8 @@ $myReservations = $myReservations ?? [];
                         <?php else: ?>
                             <div class="text-center py-5">
                                 <i class="bi bi-calendar-x text-muted display-4"></i>
-                                <h5 class="text-muted mt-3">No tens cap ruta creada</h5>
-                                <p class="text-muted">Fes clic a "Crear nova ruta" per crear la teva primera ruta</p>
+                                <h5 class="text-muted mt-3">No tens cap horari creat</h5>
+                                <p class="text-muted">Fes clic a "Nou Horari" per crear el teu primer horari</p>
                             </div>
                         <?php endif; ?>
                     </div>
@@ -317,7 +316,7 @@ $myReservations = $myReservations ?? [];
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <i class="bi bi-calendar-plus me-2"></i>
-                        <?php echo $editingHorari ? 'Editar Ruta' : 'Nova Ruta'; ?>
+                        <?php echo $editingHorari ? 'Editar Horari' : 'Nou Horari'; ?>
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -417,7 +416,7 @@ $myReservations = $myReservations ?? [];
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel·lar</button>
                         <button type="submit" class="btn btn-primary">
                             <i class="bi bi-check-circle me-1"></i>
-                            <?php echo $editingHorari ? 'Actualitzar' : 'Crear'; ?> Ruta
+                            <?php echo $editingHorari ? 'Actualitzar' : 'Crear'; ?> Horari
                         </button>
                     </div>
                 </form>

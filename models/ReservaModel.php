@@ -36,7 +36,7 @@ class ReservaModel {
     public function getUserReservationsWithDetails($userId) {
         $sql = "SELECT r.*, hr.origen, hr.desti, hr.data_ruta, hr.hora_inici, hr.hora_fi, 
                        hr.vehicle, hr.comentaris,
-                       u.nom, u.cognoms, u.email
+                       u.nom, u.cognoms, u.correu
                 FROM reservas r
                 JOIN horaris_rutes hr ON r.ruta_id = hr.id
                 JOIN usuaris u ON hr.user_id = u.id
