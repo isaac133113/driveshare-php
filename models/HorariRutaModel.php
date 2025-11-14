@@ -31,7 +31,19 @@ class HorariRutaModel {
     }
 
     public function getById($id) {
-        $stmt = $this->db->prepare("SELECT * FROM horaris_rutes WHERE id = ?");
+        $sql = "SELECT hr.*, 
+                    u.nom, u.cognoms,
+                    COALESCE(v.marca_model, hr.vehicle) AS vehicle,
+                    COALESCE(v.marca_model, hr.vehicle) AS marca_model,
+                    COALESCE(v.tipus, 'No especificat') AS tipus,
+                    COALESCE(hr.plazas_disponibles, v.places, 1) AS plazas_disponibles,
+                    COALESCE(hr.precio_euros, v.preu_hora, 0) AS precio_euros
+                FROM horaris_rutes hr
+                JOIN usuaris u ON hr.user_id = u.id
+                LEFT JOIN vehicles v ON hr.vehicle_id = v.id
+                WHERE hr.id = ?";
+        
+        $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $id);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -53,35 +65,48 @@ class HorariRutaModel {
     }
 
     public function create($data) {
+        // Campos básicos obligatorios + plazas_disponibles y precio_euros
         $sql = "INSERT INTO horaris_rutes (
                     user_id, data_ruta, hora_inici, hora_fi, 
-                    origen, desti, vehicle_id, comentaris,
-                    origen_lat, origen_lng, desti_lat, desti_lng,
-                    plazas_disponibles, precio_euros, estado,
+                    origen, desti, comentaris,
+                    plazas_disponibles, precio_euros,
                     data_creacio, data_modificacio
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
 
         $stmt = $this->db->prepare($sql);
+        
+        if ($stmt === false) {
+            error_log("Error preparando statement HorariRuta: " . $this->db->error);
+            error_log("SQL: $sql");
+            return false;
+        }
+        
+        $comentaris = $data['comentaris'] ?? '';
+        $plazasDisponibles = $data['plazas_disponibles'] ?? 1;
+        $precioEuros = $data['precio_euros'] ?? 0;
+        
         $stmt->bind_param(
-            "isssssisiiddiii",
+            "issssssis",
             $data['user_id'],
             $data['data_ruta'],
             $data['hora_inici'],
             $data['hora_fi'],
             $data['origen'],
             $data['desti'],
-            $data['vehicle_id'],
-            $data['comentaris'],
-            $data['origen_lat'],
-            $data['origen_lng'],
-            $data['desti_lat'],
-            $data['desti_lng'],
-            $data['plazas_disponibles'],
-            $data['precio_euros'],
-            $data['estado']
+            $comentaris,
+            $plazasDisponibles,
+            $precioEuros
         );
 
-        return $stmt->execute();
+        if ($stmt->execute()) {
+            $insertId = $this->db->insert_id;
+            error_log("Ruta creada exitosamente con ID: $insertId");
+            return $insertId;
+        } else {
+            error_log("Error ejecutando insert HorariRuta: " . $stmt->error);
+            error_log("Datos: " . print_r($data, true));
+            return false;
+        }
     }
 
     public function getAllRutes() {

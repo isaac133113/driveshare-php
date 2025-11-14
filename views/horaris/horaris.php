@@ -277,7 +277,7 @@ $myReservations = $myReservations ?? [];
                                                         <i class="bi bi-person-circle me-2"></i>
                                                         <div>
                                                             <div class="fw-semibold"><?php echo htmlspecialchars($reservation['nom'] . ' ' . $reservation['cognoms']); ?></div>
-                                                            <small class="text-muted"><?php echo htmlspecialchars($reservation['email']); ?></small>
+                                                            <small class="text-muted"><?php echo htmlspecialchars($reservation['correu'] ?? $reservation['email'] ?? ''); ?></small>
                                                         </div>
                                                     </div>
                                                 </td>
@@ -455,9 +455,6 @@ $myReservations = $myReservations ?? [];
         // INICIALIZACIÓN AL CARGAR EL DOM
         // ==========================================
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 DOM cargado - Inicializando sistema');
-            console.log('✓ Bootstrap Icons:', document.querySelector('link[href*="bootstrap-icons"]') ? 'Cargado' : 'No encontrado');
-            
             // Delay para asegurar que el modal esté en el DOM
             setTimeout(initMaps, 500);
             
@@ -469,28 +466,16 @@ $myReservations = $myReservations ?? [];
             
             // Event listener para tabs - redibuja las tablas al cambiar de pestaña
             const tabButtons = document.querySelectorAll('button[data-bs-toggle="tab"]');
-            console.log('📋 Pestanyes trobades:', tabButtons.length);
             
             tabButtons.forEach((button, index) => {
-                console.log(`Pestanya ${index}:`, button.id);
-                
-                // Click event como fallback
-                button.addEventListener('click', function(e) {
-                    console.log('🖱️ Click detectat a:', this.id);
-                });
-                
                 // Bootstrap tab event
                 button.addEventListener('shown.bs.tab', function (event) {
-                    console.log('✓ Pestanya mostrada:', event.target.id);
                     // Redibuja todas las DataTables cuando se cambia de pestaña
                     setTimeout(() => {
                         $.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-                        console.log('✓ Taules ajustades');
                     }, 100);
                 });
             });
-            
-            console.log('🎯 Sistema inicializado completamente');
         });
 
         // ==========================================
@@ -626,7 +611,6 @@ $myReservations = $myReservations ?? [];
         function initMyHorarisTable() {
             const table = $('#myHorarisTable');
             if (table.length === 0) {
-                console.log('❌ Tabla myHorarisTable no encontrada');
                 return;
             }
             
@@ -700,8 +684,6 @@ $myReservations = $myReservations ?? [];
                 
                 // Callback de inicialización
                 initComplete: function() {
-                    console.log('✅ DataTable inicializada correctamente para Rutes creades');
-                    
                     // Personalizar controles
                     $('#myHorarisTable_wrapper .dataTables_filter input').attr('placeholder', '🔍 Buscar els meus horaris...');
                     $('#myHorarisTable_wrapper .dataTables_length label').prepend('<i class="bi bi-list-ul me-2 text-primary"></i>');
@@ -715,7 +697,6 @@ $myReservations = $myReservations ?? [];
         function initReservedHorarisTable() {
             const table = $('#reservedHorarisTable');
             if (table.length === 0) {
-                console.log('❌ Tabla reservedHorarisTable no encontrada');
                 return;
             }
             
@@ -783,8 +764,6 @@ $myReservations = $myReservations ?? [];
                 
                 // Callback de inicialización
                 initComplete: function() {
-                    console.log('✅ DataTable inicializada correctamente para Rutes reservades');
-                    
                     // Personalizar controles
                     $('#reservedHorarisTable_wrapper .dataTables_filter input').attr('placeholder', '🔖 Buscar les teves reserves...');
                     $('#reservedHorarisTable_wrapper .dataTables_length label').prepend('<i class="bi bi-bookmark-check me-2 text-success"></i>');

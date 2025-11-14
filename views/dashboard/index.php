@@ -157,7 +157,7 @@ $userPreferences = $userPreferences ?? [
                         <div class="row g-3 mt-2">
                             <div class="col-md-6">
                                 <div class="d-grid">
-                                    <a href="../../buscar-coche.php" class="btn btn-light border-2 btn-lg rounded-3 shadow-sm dashboard-menu-btn">
+                                    <a href="../../public/index.php?controller=map&action=index" class="btn btn-light border-2 btn-lg rounded-3 shadow-sm dashboard-menu-btn">
                                         <i class="bi bi-geo-alt me-2 text-warning"></i><strong>Buscar Coche Cercano</strong>
                                         <small class="d-block text-muted mt-1">Mapa interactivo con ubicaciones</small>
                                     </a>

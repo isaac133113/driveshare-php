@@ -65,8 +65,18 @@ class MapController extends BaseController {
         // Manejar reserva rápida
         if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'quick_reserve') {
             $result = $this->quickReserveVehicle();
-            $message = $result['message'];
-            $messageType = $result['type'];
+            
+            if ($result['success']) {
+                // Si la reserva fue exitosa, redirigir a horaris a través del controlador
+                $_SESSION['message'] = $result['message'];
+                $_SESSION['messageType'] = $result['type'];
+                header("Location: ../../public/index.php?controller=horaris&action=index");
+                exit;
+            } else {
+                // Si hubo error, mostrar mensaje en la misma página
+                $message = $result['message'];
+                $messageType = $result['type'];
+            }
         }
         
         // Cargar la vista
@@ -389,17 +399,20 @@ class MapController extends BaseController {
     }
     
     private function quickReserveVehicle() {
-        if (!isset($_POST['vehicle_id'])) {
+        if (!isset($_POST['vehicle_id']) || !isset($_POST['duracion'])) {
             return [
                 'success' => false,
-                'message' => 'ID del vehículo no especificado',
+                'message' => 'Datos de reserva incompletos',
                 'type' => 'danger'
             ];
         }
         
         $vehicleId = intval($_POST['vehicle_id']);
-        $vehicles = $this->getNearbyVehicles();
+        $duracion = intval($_POST['duracion']);
+        $userId = $_SESSION['user_id'];
         
+        // Obtener vehículo
+        $vehicles = $this->getNearbyVehicles();
         $vehicle = null;
         foreach ($vehicles as $v) {
             if ($v['id'] == $vehicleId) {
@@ -424,12 +437,94 @@ class MapController extends BaseController {
             ];
         }
         
-        // Simulación de reserva rápida (en un sistema real, esto iría a la base de datos)
-        $codigoReserva = 'QR' . date('Ymd') . str_pad($vehicleId, 3, '0', STR_PAD_LEFT) . str_pad(mt_rand(1, 999), 3, '0', STR_PAD_LEFT);
+        // Calcular precio total
+        $precioTotal = $vehicle['precio_hora'] * $duracion;
+        
+        // Verificar saldo del usuario
+        require_once __DIR__ . '/../models/UserModel.php';
+        $userModel = new UserModel();
+        $user = $userModel->getUserById($userId);
+        
+        if ($user['saldo'] < $precioTotal) {
+            return [
+                'success' => false,
+                'message' => "Saldo insuficiente. Necesitas {$precioTotal}€ y tienes {$user['saldo']}€",
+                'type' => 'warning'
+            ];
+        }
+        
+        // Crear la ruta en horaris_rutes
+        require_once __DIR__ . '/../models/HorariRutaModel.php';
+        $horariRutaModel = new HorariRutaModel();
+        
+        $horaInicio = date('H:i:s');
+        $horaFin = date('H:i:s', strtotime("+{$duracion} hours"));
+        $dataRuta = date('Y-m-d');
+        
+        // Crear ruta para la reserva rápida
+        $rutaData = [
+            'user_id' => $userId,
+            'origen' => $vehicle['ubicacion']['descripcion'],
+            'desti' => 'Reserva Rápida - ' . $vehicle['nombre'],
+            'data_ruta' => $dataRuta,
+            'hora_inici' => $horaInicio,
+            'hora_fi' => $horaFin,
+            'vehicle_id' => null,
+            'plazas_disponibles' => 1,
+            'precio_euros' => $precioTotal,
+            'comentaris' => "Reserva ràpida - Vehicle: {$vehicle['nombre']} - Duració: {$duracion}h",
+            'origen_lat' => $vehicle['ubicacion']['lat'],
+            'origen_lng' => $vehicle['ubicacion']['lng'],
+            'desti_lat' => null,
+            'desti_lng' => null,
+            'estado' => 1
+        ];
+        
+        $rutaId = $horariRutaModel->create($rutaData);
+        
+        if (!$rutaId) {
+            error_log("Error al crear ruta - Datos: " . print_r($rutaData, true));
+            return [
+                'success' => false,
+                'message' => 'Error al crear la ruta de reserva',
+                'type' => 'danger'
+            ];
+        }
+        
+        error_log("Ruta creada con ID: $rutaId para usuario: $userId");
+        
+        // Crear la reserva
+        require_once __DIR__ . '/../models/ReservaModel.php';
+        $reservaModel = new ReservaModel();
+        
+        $reservaCreated = $reservaModel->create($userId, $rutaId, 1);
+        
+        if (!$reservaCreated) {
+            error_log("Error al crear reserva - userId: $userId, rutaId: $rutaId");
+            return [
+                'success' => false,
+                'message' => 'Error al crear la reserva',
+                'type' => 'danger'
+            ];
+        }
+        
+        error_log("Reserva creada exitosamente para usuario: $userId, ruta: $rutaId");
+        
+        // Descontar el saldo del usuario
+        $nuevoSaldo = $user['saldo'] - $precioTotal;
+        $userModel->updateSaldo($userId, $nuevoSaldo);
+        
+        // Añadir bonus de DriveCoins (20% del precio)
+        require_once __DIR__ . '/../models/DriveCoinModel.php';
+        $driveCoinModel = new DriveCoinModel();
+        $bonusDC = intval($precioTotal * 0.2);
+        $driveCoinModel->addCoins($userId, $bonusDC, 'Bonus por reserva rápida');
+        
+        $codigoReserva = 'QR' . date('Ymd') . str_pad($rutaId, 5, '0', STR_PAD_LEFT);
         
         return [
             'success' => true,
-            'message' => "Reserva rápida realizada: <strong>$codigoReserva</strong><br>Vehículo: {$vehicle['nombre']}<br>Ubicación: {$vehicle['ubicacion']['direccion']}",
+            'message' => "Reserva realizada correctament!<br><strong>Codi: $codigoReserva</strong><br>Vehicle: {$vehicle['nombre']}<br>Duració: {$duracion}h<br>Total: {$precioTotal}€<br>Bonus: +{$bonusDC} DC",
             'type' => 'success'
         ];
     }

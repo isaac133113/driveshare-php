@@ -76,7 +76,7 @@ class RutesController extends BaseController {
             if (!$ruta) {
                 $_SESSION['message'] = "Ruta no encontrada.";
                 $_SESSION['messageType'] = "danger";
-                header("Location: " . BASE_URL . "/public/index.php?controller=rutes&action=index");
+                header("Location: ../../public/index.php?controller=rutes&action=index");
                 exit;
             }
 
@@ -91,28 +91,28 @@ class RutesController extends BaseController {
             if ($plazas > $plazasRestantes) {
                 $_SESSION['message'] = "No hay suficientes plazas disponibles.";
                 $_SESSION['messageType'] = "danger";
-                header("Location: " . BASE_URL . "/public/index.php?controller=rutes&action=index");
+                header("Location: ../../public/index.php?controller=rutes&action=index");
                 exit;
             }
 
             if ($paymentMethod === 'drivecoins') {
-                // Calcular precio en DriveCoins
-                $precioDriveCoins = $ruta['precio_euros'] * DRIVECOIN_CONVERSION_RATE;
+                // Calcular precio en DriveCoins multiplicado por plazas
+                $precioDriveCoins = ($ruta['precio_euros'] * DRIVECOIN_CONVERSION_RATE) * $plazas;
 
                 // Intentar gastar DriveCoins
-                $success = $this->driveCoinModel->spendCoins($userId, $precioDriveCoins, "Reserva ruta ID $rutaId");
+                $success = $this->driveCoinModel->spendCoins($userId, $precioDriveCoins, "Reserva ruta ID $rutaId ($plazas places)");
 
                 if (!$success) {
                     $_SESSION['message'] = "Saldo insuficiente de DriveCoins.";
                     $_SESSION['messageType'] = "danger";
-                    header("Location: " . BASE_URL . "/public/index.php?controller=rutes&action=index");
+                    header("Location: ../../public/index.php?controller=rutes&action=index");
                     exit;
                 }
 
                 // Crear reserva
                 $this->reservaModel->create($userId, $rutaId, $plazas);
 
-                $_SESSION['message'] = "Reserva realizada con DriveCoins!";
+                $_SESSION['message'] = "Reserva realitzada amb DriveCoins!";
                 $_SESSION['messageType'] = "success";
 
             } else {
@@ -126,7 +126,7 @@ class RutesController extends BaseController {
                 if ($usuario['saldo'] < $totalEurosGastados) {
                     $_SESSION['message'] = "Saldo insuficiente.";
                     $_SESSION['messageType'] = "danger";
-                    header("Location: " . BASE_URL . "/public/index.php?controller=rutes&action=index");
+                    header("Location: ../../public/index.php?controller=rutes&action=index");
                     exit;
                 }
 
@@ -151,7 +151,8 @@ class RutesController extends BaseController {
                 $_SESSION['messageType'] = "success";
             }
 
-            header("Location: " . BASE_URL . "/public/index.php?controller=horaris&action=index");
+            // Redirigir a la página de gestión de horarios (horaris.php)
+        header("Location: ../../public/index.php?controller=horaris&action=index");
             exit;
         }
     }

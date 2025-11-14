@@ -43,7 +43,7 @@
 
             <!-- Formulario de filtros -->
             <div class="glass-card shadow-lg rounded-4 mb-4 p-4 fade-in" style="animation-delay: 0.1s;">
-                <form method="GET" action="index.php">
+                <form method="GET" action="../../public/index.php">
                     <input type="hidden" name="controller" value="rutes">
                     <input type="hidden" name="action" value="index">
                     <div class="row g-3">

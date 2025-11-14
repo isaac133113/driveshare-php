@@ -1,3 +1,8 @@
+<?php
+if (!defined('BASE_URL')) {
+    define('BASE_URL', '/PHP');
+}
+?>
 <!DOCTYPE html>
 <html lang="ca" data-theme="light">
 <head>
@@ -9,20 +14,40 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <link href="../../public/css/modern-styles.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%) !important;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.15), transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.15), transparent 40%);
+            z-index: -1;
+        }
+    </style>
 </head>
-<body class="gradient-bg" style="min-height: 100vh;">
-    <?php include '../templates/navbar.php'; ?>
+<body>
+    <?php include __DIR__ . '/../templates/navbar.php'; ?>
 
     <div class="container-fluid py-5">
         <div class="row justify-content-center">
             <div class="col-lg-11">
                 <!-- Header Card -->
-                <div class="glass-card shadow-lg rounded-4 mb-4 fade-in">
+                <div class="glass-card shadow-lg rounded-4 mb-4 fade-in" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);">
                     <div class="card-body p-4">
                         <div class="text-center mb-4">
-                            <i class="bi bi-geo-alt-fill text-primary display-4 pulse-icon"></i>
-                            <h2 class="fw-bold mt-3 text-gradient" style="font-size: 2.5rem;">Buscar Coche Cercano</h2>
-                            <p class="text-muted" style="font-size: 1.1rem;">Encuentra el vehículo más cercano a tu ubicación</p>
+                            <i class="bi bi-geo-alt-fill display-4 pulse-icon" style="color: #6366f1;"></i>
+                            <h2 class="fw-bold mt-3" style="font-size: 2.5rem; color: #1f2937;">Buscar Coche Cercano</h2>
+                            <p style="font-size: 1.1rem; color: #6b7280;">Encuentra el vehículo más cercano a tu ubicación</p>
                         </div>
                     </div>
                 </div>
@@ -40,9 +65,9 @@
                     <!-- Panel de controles -->
                     <div class="col-lg-3 mb-4">
                         <!-- Selector de modo de búsqueda -->
-                        <div class="card border-0 shadow-lg rounded-4 mb-3">
-                            <div class="card-header bg-success text-white rounded-top-4">
-                                <h5 class="mb-0"><i class="bi bi-arrow-right-circle me-2"></i>Modo de Búsqueda</h5>
+                        <div class="glass-card shadow-lg rounded-4 mb-3" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);">
+                            <div class="card-header border-0 rounded-top-4" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white;">
+                                <h5 class="mb-0 fw-bold"><i class="bi bi-arrow-right-circle me-2"></i>Modo de Búsqueda</h5>
                             </div>
                             <div class="card-body p-3">
                                 <div class="btn-group w-100" role="group">
@@ -60,14 +85,14 @@
                         </div>
 
                         <!-- Panel de rutas (oculto por defecto) -->
-                        <div class="card border-0 shadow-lg rounded-4 mb-3" id="routePanel" style="display: none;">
-                            <div class="card-header bg-info text-white rounded-top-4">
-                                <h5 class="mb-0"><i class="bi bi-map me-2"></i>Seleccionar Ruta</h5>
+                        <div class="glass-card shadow-lg rounded-4 mb-3" id="routePanel" style="display: none; background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);">
+                            <div class="card-header border-0 rounded-top-4" style="background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); color: white;">
+                                <h5 class="mb-0 fw-bold"><i class="bi bi-map me-2"></i>Seleccionar Ruta</h5>
                             </div>
-                            <div class="card-body p-3">
+                            <div class="card-body p-3" style="color: #1f2937;">
                                 <!-- Destino manual -->
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">Destino</label>
+                                    <label class="form-label fw-bold" style="color: #1f2937;">Destino</label>
                                     <div class="input-group">
                                         <input type="text" class="form-control" id="destinoInput" placeholder="Escribe tu destino...">
                                         <button class="btn btn-outline-secondary" id="searchDestinoBtn">
@@ -113,32 +138,32 @@
                             </div>
                         </div>
 
-                        <div class="card border-0 shadow-lg rounded-4">
-                            <div class="card-header bg-primary text-white rounded-top-4">
-                                <h5 class="mb-0"><i class="bi bi-sliders me-2"></i>Filtros de Búsqueda</h5>
+                        <div class="glass-card shadow-lg rounded-4" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px);">
+                            <div class="card-header border-0 rounded-top-4" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white;">
+                                <h5 class="mb-0 fw-bold"><i class="bi bi-sliders me-2"></i>Filtros de Búsqueda</h5>
                             </div>
-                            <div class="card-body p-4">
+                            <div class="card-body p-4" style="color: #1f2937;">
                                 
                                 <!-- Ubicación actual -->
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">Mi Ubicación</label>
+                                    <label class="form-label fw-bold" style="color: #1f2937;">Mi Ubicación</label>
                                     <div class="d-grid">
-                                        <button id="getLocationBtn" class="btn btn-outline-primary rounded-3">
+                                        <button id="getLocationBtn" class="btn btn-primary rounded-3">
                                             <i class="bi bi-crosshair me-2"></i>Detectar Ubicación
                                         </button>
                                     </div>
-                                    <div id="locationStatus" class="small text-muted mt-1"></div>
+                                    <div id="locationStatus" class="small mt-1" style="color: #6b7280;"></div>
                                 </div>
 
                                 <!-- Radio de búsqueda -->
                                 <div class="mb-3">
-                                    <label for="radiusSlider" class="form-label fw-bold">Radio de Búsqueda: <span id="radiusValue"><?php echo $radius; ?></span> km</label>
+                                    <label for="radiusSlider" class="form-label fw-bold" style="color: #1f2937;">Radio de Búsqueda: <span id="radiusValue"><?php echo $radius; ?></span> km</label>
                                     <input type="range" class="form-range" id="radiusSlider" min="1" max="20" value="<?php echo $radius; ?>">
                                 </div>
 
                                 <!-- Tipo de vehículo -->
                                 <div class="mb-3">
-                                    <label for="vehicleTypeFilter" class="form-label fw-bold">Tipo de Vehículo</label>
+                                    <label for="vehicleTypeFilter" class="form-label fw-bold" style="color: #1f2937;">Tipo de Vehículo</label>
                                     <select class="form-select rounded-3" id="vehicleTypeFilter">
                                         <option value="">Todos los tipos</option>
                                         <option value="city">Urbano</option>
@@ -152,17 +177,17 @@
 
                                 <!-- Servicios adicionales -->
                                 <div class="mb-3">
-                                    <label class="form-label fw-bold">Mostrar en Mapa</label>
+                                    <label class="form-label fw-bold" style="color: #1f2937;">Mostrar en Mapa</label>
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="showGasStations" checked>
-                                        <label class="form-check-label" for="showGasStations">
-                                            <i class="bi bi-fuel-pump me-1"></i>Gasolineras
+                                        <label class="form-check-label" for="showGasStations" style="color: #1f2937;">
+                                            <i class="bi bi-fuel-pump me-1 text-warning"></i>Gasolineras
                                         </label>
                                     </div>
                                     <div class="form-check">
                                         <input class="form-check-input" type="checkbox" id="showParkings" checked>
-                                        <label class="form-check-label" for="showParkings">
-                                            <i class="bi bi-p-square me-1"></i>Parkings
+                                        <label class="form-check-label" for="showParkings" style="color: #1f2937;">
+                                            <i class="bi bi-p-square me-1 text-primary"></i>Parkings
                                         </label>
                                     </div>
                                 </div>
@@ -170,174 +195,140 @@
                                 <hr>
 
                                 <!-- Leyenda -->
-                                <h6 class="fw-bold"><i class="bi bi-info-circle me-2"></i>Leyenda</h6>
+                                <h6 class="fw-bold" style="color: #1f2937;"><i class="bi bi-info-circle me-2 text-primary"></i>Leyenda</h6>
                                 <div class="d-flex align-items-center mb-2">
-                                    <div class="rounded-circle me-2" style="width: 20px; height: 20px; background: #007bff; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
-                                    <small>Vehículo disponible</small>
+                                    <div class="rounded-circle me-2" style="width: 20px; height: 20px; background: #6366f1; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>
+                                    <small class="fw-semibold" style="color: #1f2937;">Vehículo disponible</small>
                                 </div>
                                 <div class="d-flex align-items-center mb-2">
-                                    <div class="rounded-circle me-2" style="width: 20px; height: 20px; background: #28a745; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
-                                    <small>Vehículo eléctrico</small>
+                                    <div class="rounded-circle me-2" style="width: 20px; height: 20px; background: #10b981; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>
+                                    <small class="fw-semibold" style="color: #1f2937;">Vehículo eléctrico</small>
                                 </div>
                                 <div class="d-flex align-items-center mb-2">
-                                    <div class="rounded-circle me-2" style="width: 20px; height: 20px; background: #fd7e14; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
-                                    <small>Motocicleta</small>
+                                    <div class="rounded-circle me-2" style="width: 20px; height: 20px; background: #f59e0b; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>
+                                    <small class="fw-semibold" style="color: #1f2937;">Motocicleta</small>
                                 </div>
                                 <div class="d-flex align-items-center mb-2">
-                                    <div class="rounded-circle me-2" style="width: 20px; height: 20px; background: #dc3545; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.3);"></div>
-                                    <small>No disponible</small>
+                                    <div class="rounded-circle me-2" style="width: 20px; height: 20px; background: #ef4444; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.2);"></div>
+                                    <small class="fw-semibold" style="color: #1f2937;">No disponible</small>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Mapa -->
-                    <div class="col-lg-6 mb-4">
-                        <div class="card border-0 shadow-lg rounded-4">
-                            <div class="card-body p-0">
-                                <div id="map" style="height: 500px; width: 100%; border-radius: 10px;"></div>
-                            </div>
-                        </div>
-                        
-                        <!-- Información rápida -->
-                        <div class="mt-3">
-                            <div class="row text-center g-2">
-                                <div class="col-4">
-                                    <div class="card bg-primary text-white border-0 rounded-3">
-                                        <div class="card-body py-3">
-                                            <h6 class="mb-1" id="totalVehicles"><?php echo count($vehicles ?? []); ?></h6>
-                                            <small>Vehículos</small>
-                                        </div>
+                    <!-- Mapa y Reserva Rápida (juntos) -->
+                    <div class="col-lg-9 mb-4">
+                        <div class="row">
+                            <!-- Mapa -->
+                            <div class="col-lg-8">
+                                <div class="card border-0 shadow-lg rounded-4">
+                                    <div class="card-body p-0">
+                                        <div id="map" style="height: 700px; width: 100%; border-radius: 10px;"></div>
                                     </div>
                                 </div>
-                                <div class="col-4">
-                                    <div class="card bg-success text-white border-0 rounded-3">
-                                        <div class="card-body py-3">
-                                            <h6 class="mb-1" id="availableVehicles"><?php echo count(array_filter($vehicles ?? [], function($v) { return $v['disponible']; })); ?></h6>
-                                            <small>Disponibles</small>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-4">
-                                    <div class="card bg-info text-white border-0 rounded-3">
-                                        <div class="card-body py-3">
-                                            <h6 class="mb-1" id="nearestDistance"><?php echo !empty($vehicles) ? $vehicles[0]['distancia'] : '0'; ?> km</h6>
-                                            <small>Más cercano</small>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Lista de vehículos -->
-                    <div class="col-lg-3">
-                        <div class="card border-0 shadow-lg rounded-4">
-                            <div class="card-header bg-primary text-white rounded-top-4">
-                                <h5 class="mb-0"><i class="bi bi-car-front me-2"></i>Vehículos Cercanos</h5>
-                            </div>
-                            <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;">
-                                <div id="vehiclesList">
-                                    <?php foreach ($vehicles ?? [] as $vehicle): ?>
-                                        <div class="vehicle-card border-bottom p-3" data-vehicle-id="<?php echo $vehicle['id']; ?>" onclick="selectVehicle(<?php echo $vehicle['id']; ?>)" style="cursor: pointer; transition: background-color 0.2s ease;" onmouseover="this.style.backgroundColor='#f8f9fa'" onmouseout="this.style.backgroundColor='white'">
-                                            <div class="d-flex justify-content-between align-items-start mb-2">
-                                                <h6 class="mb-0 fw-bold"><?php echo htmlspecialchars($vehicle['nombre']); ?></h6>
-                                                <span class="badge bg-primary rounded-pill"><?php echo $vehicle['distancia']; ?> km</span>
+                                
+                                <!-- Información rápida -->
+                                <div class="mt-3">
+                                    <div class="row text-center g-3">
+                                        <div class="col-4">
+                                            <div class="rounded-3 shadow-sm" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); color: white; padding: 1rem;">
+                                                <h5 class="mb-1 fw-bold" id="totalVehicles"><?php echo count($vehicles ?? []); ?></h5>
+                                                <small class="fw-semibold">Vehículos</small>
                                             </div>
-                                    
-                                    <div class="row g-2 mb-2">
-                                        <div class="col-6">
-                                            <img src="<?php echo $vehicle['imagen']; ?>" class="img-fluid rounded" alt="<?php echo htmlspecialchars($vehicle['nombre']); ?>">
                                         </div>
-                                        <div class="col-6">
-                                            <small class="text-muted"><?php echo $vehicle['marca']; ?></small><br>
-                                            <strong class="text-primary">€<?php echo number_format($vehicle['precio_hora'], 0); ?>/h</strong><br>
-                                            <span class="badge bg-<?php echo $vehicle['disponible'] ? 'success' : 'danger'; ?> text-white">
-                                                <?php echo $vehicle['disponible'] ? 'Disponible' : 'No disponible'; ?>
-                                            </span>
+                                        <div class="col-4">
+                                            <div class="rounded-3 shadow-sm" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 1rem;">
+                                                <h5 class="mb-1 fw-bold" id="availableVehicles"><?php echo count(array_filter($vehicles ?? [], function($v) { return $v['disponible']; })); ?></h5>
+                                                <small class="fw-semibold">Disponibles</small>
+                                            </div>
+                                        </div>
+                                        <div class="col-4">
+                                            <div class="rounded-3 shadow-sm" style="background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); color: white; padding: 1rem;">
+                                                <h5 class="mb-1 fw-bold" id="nearestDistance"><?php echo !empty($vehicles) ? $vehicles[0]['distancia'] : '0'; ?> km</h5>
+                                                <small class="fw-semibold">Más cercano</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Reserva Rápida (a la derecha del mapa) -->
+                            <div class="col-lg-4">
+                        <div class="glass-card shadow-lg rounded-4 mb-3" style="background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(20px); max-height: 800px; overflow-y: auto;">
+                            <div class="card-header border-0 rounded-top-4" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white;">
+                                <h5 class="mb-0 fw-bold"><i class="bi bi-lightning-charge-fill me-2"></i>Reserva Rápida</h5>
+                            </div>
+                            <div class="card-body p-3" style="color: #1f2937;">
+                                <!-- Lista de vehículos cercanos -->
+                                <div id="nearbyVehiclesList" class="mb-3">
+                                    <h6 class="fw-bold mb-3" style="color: #1f2937;"><i class="bi bi-geo-alt-fill me-2"></i>Vehículos Cercanos</h6>
+                                    <div id="vehicleListContainer">
+                                        <!-- Se llenará dinámicamente con JavaScript -->
+                                    </div>
+                                </div>
+                                
+                                <hr class="my-3">
+                                
+                                <!-- Contenido dinámico cuando se selecciona un vehículo -->
+                                <div id="selectedVehicleInfo" style="display: none;">
+                                    <div class="text-center mb-3">
+                                        <img id="quickVehicleImage" src="" class="img-fluid rounded-3 mb-2" style="max-height: 150px;" alt="Vehicle">
+                                        <h5 class="fw-bold mb-1" id="quickVehicleName"></h5>
+                                        <p class="text-muted mb-0"><span id="quickVehicleMarca"></span></p>
+                                        <span class="badge rounded-pill mt-2" id="quickVehicleBadge" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%);"></span>
+                                    </div>
+                                    
+                                    <div class="mb-3">
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted"><i class="bi bi-geo-alt-fill me-1"></i>Distancia:</span>
+                                            <strong id="quickVehicleDistance"></strong>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span class="text-muted"><i class="bi bi-cash me-1"></i>Precio:</span>
+                                            <strong class="text-primary" id="quickVehiclePrice"></strong>
                                         </div>
                                     </div>
                                     
-                                    <div class="mb-2">
-                                        <small class="text-muted">
-                                            <i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($vehicle['ubicacion']['descripcion']); ?>
-                                        </small>
-                                    </div>
-                                    
-                                    <div class="d-flex justify-content-between align-items-center mb-2">
-                                        <small>Combustible/Batería:</small>
-                                        <div class="progress" style="width: 60px; height: 8px;">
-                                            <div class="progress-bar battery-level" style="width: <?php echo $vehicle['bateria']; ?>%"></div>
+                                    <form method="POST" id="quickReserveForm">
+                                        <input type="hidden" name="action" value="quick_reserve">
+                                        <input type="hidden" name="vehicle_id" id="quickVehicleId">
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label fw-bold" style="color: #1f2937;">Duración</label>
+                                            <select class="form-select" name="duracion" id="quickDuracion" required>
+                                                <option value="1">1 hora</option>
+                                                <option value="2">2 horas</option>
+                                                <option value="3">3 horas</option>
+                                                <option value="4">4 horas</option>
+                                                <option value="6">6 horas</option>
+                                                <option value="8">8 horas</option>
+                                                <option value="12">12 horas</option>
+                                                <option value="24">24 horas</option>
+                                            </select>
                                         </div>
-                                        <small><?php echo $vehicle['bateria']; ?>%</small>
-                                    </div>
-                                    
-                                    <?php if ($vehicle['disponible']): ?>
-                                        <div class="d-grid">
-                                            <button class="btn btn-primary btn-sm" onclick="quickReserve(<?php echo $vehicle['id']; ?>)" data-bs-toggle="modal" data-bs-target="#quickReserveModal">
-                                                <i class="fas fa-bolt"></i> Reserva Rápida
+                                        
+                                        <div class="alert alert-info">
+                                            <strong>Total: €<span id="quickTotalPrice">0</span></strong>
+                                        </div>
+                                        
+                                        <div class="d-grid gap-2">
+                                            <button type="submit" class="btn btn-lg rounded-3" style="background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); color: white; font-weight: bold;">
+                                                <i class="bi bi-check-circle-fill me-2"></i>Confirmar Reserva
+                                            </button>
+                                            <button type="button" class="btn btn-outline-secondary rounded-3" onclick="clearQuickReserve()">
+                                                <i class="bi bi-x-circle me-2"></i>Cancelar
                                             </button>
                                         </div>
-                                    <?php endif; ?>
+                                    </form>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal de Reserva Rápida -->
-    <div class="modal fade" id="quickReserveModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">
-                        <i class="fas fa-bolt"></i> Reserva Rápida: <span id="modalVehicleName"></span>
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <form method="POST">
-                    <div class="modal-body">
-                        <input type="hidden" name="action" value="quick_reserve">
-                        <input type="hidden" name="vehicle_id" id="modalVehicleId">
-                        
-                        <div class="mb-3">
-                            <label for="duracion" class="form-label">Duración (horas)</label>
-                            <select class="form-select" name="duracion" id="duracion" onchange="updateQuickPrice()" required>
-                                <option value="1">1 hora</option>
-                                <option value="2">2 horas</option>
-                                <option value="3">3 horas</option>
-                                <option value="4">4 horas</option>
-                                <option value="6">6 horas</option>
-                                <option value="8">8 horas</option>
-                                <option value="12">12 horas</option>
-                                <option value="24">24 horas (1 día)</option>
-                            </select>
                         </div>
-                        
-                        <div class="card bg-light">
-                            <div class="card-body">
-                                <h6>Resumen</h6>
-                                <p class="mb-1">Precio por hora: €<span id="modalPricePerHour">0</span></p>
-                                <p class="mb-1">Duración: <span id="modalDuration">1</span> hora(s)</p>
-                                <p class="mb-1">Ubicación: <span id="modalLocation"></span></p>
-                                <hr>
-                                <h6 class="mb-0">Total: €<span id="modalTotalPrice">0</span></h6>
                             </div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-check"></i> Confirmar Reserva
-                        </button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>
-    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -390,7 +381,7 @@
                         <p class="mb-1">${vehicle.ubicacion.descripcion}</p>
                         <p class="mb-1">Distancia: ${vehicle.distancia} km</p>
                         <span class="badge bg-${vehicle.disponible ? 'success' : 'danger'}">${vehicle.disponible ? 'Disponible' : 'No disponible'}</span>
-                        ${vehicle.disponible ? `<br><button class="btn btn-primary btn-sm mt-2" onclick="quickReserve(${vehicle.id})" data-bs-toggle="modal" data-bs-target="#quickReserveModal">Reservar</button>` : ''}
+                        ${vehicle.disponible ? `<br><button class="btn btn-primary btn-sm mt-2" onclick="selectVehicle(${vehicle.id})">Reservar</button>` : ''}
                     </div>
                 `;
                 
@@ -399,6 +390,47 @@
                 
                 vehicleMarkers.push(marker);
             });
+            
+            // Actualizar lista de vehículos cercanos
+            updateNearbyVehiclesList();
+        }
+        
+        // Actualizar lista de vehículos cercanos en el panel
+        function updateNearbyVehiclesList() {
+            const container = document.getElementById('vehicleListContainer');
+            if (!container) return;
+            
+            if (currentVehicles.length === 0) {
+                container.innerHTML = '<p class="text-muted small">No hay vehículos disponibles</p>';
+                return;
+            }
+            
+            let html = '';
+            currentVehicles.slice(0, 10).forEach(vehicle => {
+                if (!vehicle.disponible) return;
+                
+                const badgeColor = vehicle.disponible ? '#10b981' : '#ef4444';
+                html += `
+                    <div class="vehicle-list-item mb-2 p-2 rounded-3 shadow-sm" 
+                         style="cursor: pointer; background: rgba(255, 255, 255, 0.5); border: 2px solid transparent; transition: all 0.3s;"
+                         onmouseover="this.style.borderColor='#f59e0b'; this.style.background='rgba(245, 158, 11, 0.1)'"
+                         onmouseout="this.style.borderColor='transparent'; this.style.background='rgba(255, 255, 255, 0.5)'"
+                         onclick="selectVehicle(${vehicle.id})">
+                        <div class="d-flex align-items-center">
+                            <img src="${vehicle.imagen}" style="width: 50px; height: 50px; object-fit: cover;" class="rounded me-2" alt="${vehicle.nombre}">
+                            <div class="flex-grow-1">
+                                <div class="fw-bold small mb-0" style="color: #1f2937;">${vehicle.nombre}</div>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">${vehicle.distancia} km</small>
+                                    <span class="badge badge-sm" style="background: ${badgeColor}; font-size: 0.65rem;">€${vehicle.precio_hora}/h</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            container.innerHTML = html;
         }
 
         // Obtener icono según tipo de vehículo
@@ -438,7 +470,7 @@
                         <p class="mb-1">${station.direccion}</p>
                         ${station.precio_gasolina ? `<p class="mb-1">Gasolina: €${station.precio_gasolina}</p>` : ''}
                         ${station.precio_diesel ? `<p class="mb-1">Diesel: €${station.precio_diesel}</p>` : ''}
-                        <p class="mb-0"><small>${station.servicios.join(', ')}</small></p>
+                        ${station.servicios ? `<p class="mb-0"><small>${station.servicios.join(', ')}</small></p>` : ''}
                     </div>
                 `;
                 
@@ -469,7 +501,7 @@
                         <p class="mb-1">${parking.direccion}</p>
                         <p class="mb-1">€${parking.precio_hora}/hora</p>
                         <p class="mb-1">Plazas: ${parking.plazas_libres}/${parking.plazas_totales}</p>
-                        <p class="mb-0"><small>${parking.servicios.join(', ')}</small></p>
+                        ${parking.servicios ? `<p class="mb-0"><small>${parking.servicios.join(', ')}</small></p>` : ''}
                     </div>
                 `;
                 
@@ -537,61 +569,97 @@
             }
         }
 
-        // Seleccionar vehículo
+        // Seleccionar vehículo (inline quick reserve)
         function selectVehicle(vehicleId) {
-            // Remover selección anterior
-            document.querySelectorAll('.vehicle-card').forEach(card => {
-                card.classList.remove('selected');
-            });
-            
-            // Seleccionar nuevo vehículo
-            const vehicleCard = document.querySelector(`[data-vehicle-id="${vehicleId}"]`);
-            if (vehicleCard) {
-                vehicleCard.classList.add('selected');
-            }
-            
             // Encontrar vehículo en la lista
             const vehicle = currentVehicles.find(v => v.id === vehicleId);
-            if (vehicle) {
-                // Centrar mapa en el vehículo
-                map.setView([vehicle.ubicacion.lat, vehicle.ubicacion.lng], 16);
-                
-                // Abrir popup del marcador
-                const marker = vehicleMarkers.find(m => 
-                    m.getLatLng().lat === vehicle.ubicacion.lat && 
-                    m.getLatLng().lng === vehicle.ubicacion.lng
-                );
-                if (marker) {
-                    marker.openPopup();
-                }
+            if (!vehicle || !vehicle.disponible) {
+                return;
             }
+            
+            // Centrar mapa en el vehículo
+            map.setView([vehicle.ubicacion.lat, vehicle.ubicacion.lng], 16);
+            
+            // Abrir popup del marcador
+            const marker = vehicleMarkers.find(m => 
+                m.getLatLng().lat === vehicle.ubicacion.lat && 
+                m.getLatLng().lng === vehicle.ubicacion.lng
+            );
+            if (marker) {
+                marker.openPopup();
+            }
+            
+            // Mostrar información en panel de reserva rápida
+            const quickContent = document.getElementById('quickReserveContent');
+            if (quickContent) {
+                quickContent.style.display = 'none';
+            }
+            
+            const selectedInfo = document.getElementById('selectedVehicleInfo');
+            if (selectedInfo) {
+                selectedInfo.style.display = 'block';
+            }
+            
+            // Actualizar información del vehículo
+            const imgElement = document.getElementById('quickVehicleImage');
+            const nameElement = document.getElementById('quickVehicleName');
+            const marcaElement = document.getElementById('quickVehicleMarca');
+            const distanceElement = document.getElementById('quickVehicleDistance');
+            const priceElement = document.getElementById('quickVehiclePrice');
+            const badgeElement = document.getElementById('quickVehicleBadge');
+            const vehicleIdInput = document.getElementById('quickVehicleId');
+            
+            if (imgElement) imgElement.src = vehicle.imagen;
+            if (nameElement) nameElement.textContent = vehicle.nombre;
+            if (marcaElement) marcaElement.textContent = vehicle.marca || vehicle.tipo || '';
+            if (distanceElement) distanceElement.textContent = vehicle.distancia + ' km';
+            if (priceElement) priceElement.textContent = '€' + vehicle.precio_hora.toFixed(2) + '/hora';
+            if (badgeElement) badgeElement.textContent = vehicle.disponible ? 'Disponible' : 'No disponible';
+            if (vehicleIdInput) vehicleIdInput.value = vehicleId;
+            
+            // Calcular precio inicial
+            updateQuickReservePrice();
+            
+            // Scroll al formulario de reserva
+            selectedInfo?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             
             selectedVehicleId = vehicleId;
         }
 
-        // Reserva rápida
+        // Reserva rápida (callback para botones en popups)
         function quickReserve(vehicleId) {
-            const vehicle = currentVehicles.find(v => v.id === vehicleId);
-            if (vehicle) {
-                document.getElementById('modalVehicleId').value = vehicleId;
-                document.getElementById('modalVehicleName').textContent = vehicle.nombre;
-                document.getElementById('modalPricePerHour').textContent = vehicle.precio_hora.toFixed(2);
-                document.getElementById('modalLocation').textContent = vehicle.ubicacion.descripcion;
-                updateQuickPrice();
-            }
+            selectVehicle(vehicleId);
         }
 
         // Actualizar precio de reserva rápida
-        function updateQuickPrice() {
-            const vehicleId = document.getElementById('modalVehicleId').value;
-            const duracion = parseInt(document.getElementById('duracion').value);
+        function updateQuickReservePrice() {
+            const vehicleId = document.getElementById('quickVehicleId')?.value;
+            const duracionElement = document.getElementById('quickDuracion');
+            const duracion = duracionElement ? parseInt(duracionElement.value) : 1;
             const vehicle = currentVehicles.find(v => v.id == vehicleId);
             
             if (vehicle) {
                 const total = vehicle.precio_hora * duracion;
-                document.getElementById('modalDuration').textContent = duracion;
-                document.getElementById('modalTotalPrice').textContent = total.toFixed(2);
+                const totalElement = document.getElementById('quickTotalPrice');
+                if (totalElement) {
+                    totalElement.textContent = total.toFixed(2);
+                }
             }
+        }
+
+        // Limpiar reserva rápida
+        function clearQuickReserve() {
+            const quickContent = document.getElementById('quickReserveContent');
+            const selectedInfo = document.getElementById('selectedVehicleInfo');
+            const vehicleIdInput = document.getElementById('quickVehicleId');
+            const duracionElement = document.getElementById('quickDuracion');
+            
+            if (quickContent) quickContent.style.display = 'block';
+            if (selectedInfo) selectedInfo.style.display = 'none';
+            if (vehicleIdInput) vehicleIdInput.value = '';
+            if (duracionElement) duracionElement.value = '1';
+            
+            selectedVehicleId = null;
         }
 
         // Event listeners
@@ -620,6 +688,12 @@
                 }
             });
         });
+        
+        // Event listener para cambio de duración en reserva rápida
+        const quickDuracion = document.getElementById('quickDuracion');
+        if (quickDuracion) {
+            quickDuracion.addEventListener('change', updateQuickReservePrice);
+        }
 
         // Variables para manejo de rutas
         let currentSearchMode = 'nearby';
@@ -808,38 +882,6 @@
         document.addEventListener('DOMContentLoaded', function() {
             initMap();
         });
-
-        // Dark Mode Toggle
-        const darkModeToggle = document.getElementById('darkModeToggle');
-        const darkModeIcon = document.getElementById('darkModeIcon');
-        const html = document.documentElement;
-        
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        html.setAttribute('data-theme', savedTheme);
-        updateDarkModeIcon(savedTheme);
-        
-        darkModeToggle.addEventListener('click', () => {
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateDarkModeIcon(newTheme);
-        });
-        
-        function updateDarkModeIcon(theme) {
-            if (theme === 'dark') {
-                darkModeIcon.classList.remove('bi-moon-stars');
-                darkModeIcon.classList.add('bi-sun-fill');
-            } else {
-                darkModeIcon.classList.remove('bi-sun-fill');
-                darkModeIcon.classList.add('bi-moon-stars');
-            }
-        }
     </script>
-
-    <!-- Dark Mode Toggle -->
-    <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle Dark Mode">
-        <i class="bi bi-moon-stars fs-4" id="darkModeIcon"></i>
-    </button>
 </body>
 </html>
