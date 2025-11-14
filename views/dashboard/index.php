@@ -182,119 +182,183 @@ $userPreferences = $userPreferences ?? [
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     
-    <!-- DriveShare Interactive Functions -->
-    <script>
-                                    </a>
+    <!-- Modal de Configuración -->
+    <div class="modal fade" id="configModal" tabindex="-1" aria-labelledby="configModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="configModalLabel">
+                        <i class="bi bi-gear me-2"></i>Configuració del Compte
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Tabs de Configuración -->
+                    <ul class="nav nav-tabs" id="configTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button" role="tab">
+                                <i class="bi bi-person me-1"></i>Perfil
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="password-tab" data-bs-toggle="tab" data-bs-target="#password" type="button" role="tab">
+                                <i class="bi bi-key me-1"></i>Contrasenya
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="preferences-tab" data-bs-toggle="tab" data-bs-target="#preferences" type="button" role="tab">
+                                <i class="bi bi-sliders me-1"></i>Preferències
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content mt-3" id="configTabsContent">
+                        <!-- Tab Perfil -->
+                        <div class="tab-pane fade show active" id="profile" role="tabpanel">
+                            <form id="profileForm" method="post" action="">
+                                <input type="hidden" name="action" value="update_profile">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="nom" class="form-label">Nom</label>
+                                        <input type="text" class="form-control" id="nom" name="nom" value="<?php echo htmlspecialchars($_SESSION['user_nom']); ?>" required>
+                                    </div>
+                                    <div class="col-md-6 mb-3">
+                                        <label for="cognoms" class="form-label">Cognoms</label>
+                                        <input type="text" class="form-control" id="cognoms" name="cognoms" value="<?php echo htmlspecialchars($_SESSION['user_cognoms']); ?>" required>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <!-- Espacio vacío para futuros botones -->
-                            </div>
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" name="email" value="<?php echo htmlspecialchars($_SESSION['user_email']); ?>" required>
+                                </div>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="bi bi-check-circle me-1"></i>Actualitzar Perfil
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Tab Contrasenya -->
+                        <div class="tab-pane fade" id="password" role="tabpanel">
+                            <form id="passwordForm" method="post" action="">
+                                <input type="hidden" name="action" value="change_password">
+                                <div class="alert alert-info">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    Per canviar la contrasenya, introdueix la contrasenya actual i la nova contrasenya.
+                                </div>
+                                <div class="mb-3">
+                                    <label for="current_password" class="form-label">
+                                        <i class="bi bi-shield-lock me-1"></i>Contrasenya Actual
+                                    </label>
+                                    <input type="password" class="form-control" id="current_password" name="current_password" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="new_password" class="form-label">
+                                        <i class="bi bi-key me-1"></i>Nova Contrasenya
+                                    </label>
+                                    <input type="password" class="form-control" id="new_password" name="new_password" required minlength="6">
+                                    <small class="text-muted">Mínim 6 caràcters</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="confirm_password" class="form-label">
+                                        <i class="bi bi-check-circle me-1"></i>Confirmar Nova Contrasenya
+                                    </label>
+                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+                                </div>
+                                <button type="submit" class="btn btn-warning">
+                                    <i class="bi bi-key me-1"></i>Canviar Contrasenya
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Tab Preferències -->
+                        <div class="tab-pane fade" id="preferences" role="tabpanel">
+                            <form id="preferencesForm" method="post" action="">
+                                <input type="hidden" name="action" value="save_preferences">
+                                <div class="mb-3">
+                                    <label class="form-label">Notificacions</label>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="emailNotifications" name="emailNotifications" <?php echo $userPreferences['email_notifications'] ? 'checked' : ''; ?>>
+                                        <label class="form-check-label" for="emailNotifications">
+                                            Rebre notificacions per email
+                                        </label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="smsNotifications" name="smsNotifications" <?php echo $userPreferences['sms_notifications'] ? 'checked' : ''; ?>>
+                                        <label class="form-check-label" for="smsNotifications">
+                                            Rebre notificacions per SMS
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="defaultVehicle" class="form-label">Vehicle Preferit</label>
+                                    <select class="form-control" id="defaultVehicle" name="defaultVehicle">
+                                        <option value="">Selecciona un vehicle</option>
+                                        <option value="Seat Ibiza" <?php echo $userPreferences['default_vehicle'] === 'Seat Ibiza' ? 'selected' : ''; ?>>Seat Ibiza</option>
+                                        <option value="Ford Focus" <?php echo $userPreferences['default_vehicle'] === 'Ford Focus' ? 'selected' : ''; ?>>Ford Focus</option>
+                                        <option value="Tesla Model 3" <?php echo $userPreferences['default_vehicle'] === 'Tesla Model 3' ? 'selected' : ''; ?>>Tesla Model 3</option>
+                                        <option value="BMW X5" <?php echo $userPreferences['default_vehicle'] === 'BMW X5' ? 'selected' : ''; ?>>BMW X5</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-success">
+                                    <i class="bi bi-gear me-1"></i>Guardar Preferències
+                                </button>
+                            </form>
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
 
-                <!-- Modal Nova Ruta -->
-                <div class="modal fade" id="newRouteModal" tabindex="-1">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">
-                                    <i class="bi bi-map me-2"></i>Nova Ruta
-                                </h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form method="POST" id="newRouteForm">
-                                    <input type="hidden" name="action" value="create_route">
-                                    <input type="hidden" id="origen_lat" name="origen_lat">
-                                    <input type="hidden" id="origen_lng" name="origen_lng">
-                                    <input type="hidden" id="desti_lat" name="desti_lat">
-                                    <input type="hidden" id="desti_lng" name="desti_lng">
+    <!-- Dark Mode Toggle -->
+    <button class="dark-mode-toggle" id="darkModeToggle" aria-label="Toggle Dark Mode">
+        <i class="bi bi-moon-stars fs-4" id="darkModeIcon"></i>
+    </button>
 
-                                    <div class="row g-3">
-                                        <!-- Data i Hora -->
-                                        <div class="col-md-4">
-                                            <label class="form-label">Data</label>
-                                            <input type="date" class="form-control" name="data_ruta" required
-                                                min="<?php echo date('Y-m-d'); ?>">
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Hora Inici</label>
-                                            <input type="time" class="form-control" name="hora_inici" required>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <label class="form-label">Hora Fi</label>
-                                            <input type="time" class="form-control" name="hora_fi" required>
-                                        </div>
+    <!-- JavaScript Functions -->
+    <script>
+        // Gestión de formularios en el modal de configuración
+        document.getElementById('profileForm').addEventListener('submit', function(e) {
+            return true;
+        });
 
-                                        <!-- Vehicle i Places -->
-                                        <div class="col-md-6">
-                                            <label class="form-label">Vehicle</label>
+        document.getElementById('passwordForm').addEventListener('submit', function(e) {
+            const newPassword = document.getElementById('new_password').value;
+            const confirmPassword = document.getElementById('confirm_password').value;
+            
+            if (newPassword !== confirmPassword) {
+                e.preventDefault();
+                alert('❌ Les contrasenyes no coincideixen');
+                return false;
+            }
+            
+            return true;
+        });
 
-                                            <select class="form-select" name="vehicle_id" required>
-                                                <option value="">Selecciona un vehicle...</option>
-                                                <?php foreach ($userVehicles as $vehicle): ?>
-                                                    <option value="<?php echo $vehicle['id']; ?>">
-                                                        <?php echo htmlspecialchars($vehicle['marca_model']); ?>
-                                                    </option>
-                                                <?php endforeach; ?>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Places Disponibles</label>
-                                            <input type="number" class="form-control" name="plazas_disponibles" 
-                                                min="1" max="8" value="4" required>
-                                        </div>
-                                        <div class="col-md-3">
-                                            <label class="form-label">Preu (€)</label>
-                                            <input type="number" class="form-control" name="precio_euros" 
-                                                min="0" step="0.01" required>
-                                        </div>
+        document.getElementById('preferencesForm').addEventListener('submit', function(e) {
+            return true;
+        });
 
-                                        <!-- Mapa i Ubicacions -->
-                                        <div class="col-12">
-                                            <div class="row">
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Origen</label>
-                                                    <div class="input-group mb-3">
-                                                        <input type="text" class="form-control" id="origenInput" 
-                                                            placeholder="Cerca una ubicació..." required>
-                                                        <button class="btn btn-outline-primary" type="button" 
-                                                                onclick="searchLocation('origen')">
-                                                            <i class="bi bi-search"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                                <div class="col-md-6">
-                                                    <label class="form-label">Destí</label>
-                                                    <div class="input-group mb-3">
-                                                        <input type="text" class="form-control" id="destiInput" 
-                                                            placeholder="Cerca una ubicació..." required>
-                                                        <button class="btn btn-outline-primary" type="button" 
-                                                                onclick="searchLocation('desti')">
-                                                            <i class="bi bi-search"></i>
-                                                        </button>
+        // Validación en tiempo real de contraseñas
+        document.getElementById('confirm_password').addEventListener('input', function() {
+            const newPassword = document.getElementById('new_password').value;
+            const confirmPassword = this.value;
+            
+            if (newPassword !== confirmPassword) {
+                this.setCustomValidity('Les contrasenyes no coincideixen');
+            } else {
+                this.setCustomValidity('');
+            }
+        });
+    </script>
+</body>
+</html>
                                                     </div>
                                                 </div>
                                             </div>
                                             
                                             <div id="routeMap" style="height: 300px;" class="rounded-3 mb-3"></div>
                                         </div>
-
-                                        <!-- Comentaris -->
-                                        <div class="col-12">
-                                            <label class="form-label">Comentaris</label>
-                                            <textarea class="form-control" name="comentaris" rows="3" 
-                                                    placeholder="Afegeix detalls addicionals sobre la ruta..."></textarea>
-                                        </div>
-                                    </div>
-
-                                    <div class="text-end mt-4">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel·lar</button>
-                                        <button type="submit" class="btn btn-primary">
-                                            <i class="bi bi-plus-circle me-2"></i>Crear Ruta
-                                        </button>
                                     </div>
                                 </form>
                             </div>

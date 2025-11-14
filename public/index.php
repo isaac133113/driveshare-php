@@ -13,6 +13,7 @@ require_once __DIR__ . '/../controllers/DashboardController.php';
 require_once __DIR__ . '/../controllers/RutesController.php';
 require_once __DIR__ . '/../controllers/HorariController.php';
 require_once __DIR__ . '/../controllers/MapController.php';
+require_once __DIR__ . '/../controllers/ValoracionController.php';
 
 // Obtener la ruta y acción desde la URL
 $controllerName = $_GET['controller'] ?? 'auth';
@@ -40,6 +41,9 @@ switch ($controllerName) {
         break;
     case 'map':
         $ctrl = new MapController();
+        break;
+    case 'valoracion':
+        $ctrl = new ValoracionController();
         break;
     default:
         ob_end_clean();

@@ -49,6 +49,15 @@ class HorariController extends BaseController {
         $allHoraris = $this->horariModel->getAllHoraris();
         $myHoraris = $this->horariModel->getHorarisByUserId($_SESSION['user_id']);
         
+        // Añadir valoraciones a mis rutas
+        require_once __DIR__ . '/../models/ValoracionModel.php';
+        $valoracionModel = new ValoracionModel();
+        foreach ($myHoraris as &$horari) {
+            $promedio = $valoracionModel->getPromedioByRuta($horari['id']);
+            $horari['valoracion_promedio'] = $promedio['promedio'];
+            $horari['valoracion_total'] = $promedio['total'];
+        }
+        
         // Obtener reservas del usuario
         require_once __DIR__ . '/../models/ReservaModel.php';
         $reservaModel = new ReservaModel();

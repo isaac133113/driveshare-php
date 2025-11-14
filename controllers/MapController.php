@@ -465,19 +465,20 @@ class MapController extends BaseController {
         $rutaData = [
             'user_id' => $userId,
             'origen' => $vehicle['ubicacion']['descripcion'],
-            'desti' => 'Reserva Rápida - ' . $vehicle['nombre'],
+            'desti' => 'Reserva Ràpida - ' . $vehicle['nombre'],
             'data_ruta' => $dataRuta,
             'hora_inici' => $horaInicio,
             'hora_fi' => $horaFin,
             'vehicle_id' => null,
             'plazas_disponibles' => 1,
             'precio_euros' => $precioTotal,
-            'comentaris' => "Reserva ràpida - Vehicle: {$vehicle['nombre']} - Duració: {$duracion}h",
+            'comentaris' => "RESERVA_RAPIDA:{$vehicle['nombre']}:Duració {$duracion}h",
             'origen_lat' => $vehicle['ubicacion']['lat'],
             'origen_lng' => $vehicle['ubicacion']['lng'],
             'desti_lat' => null,
             'desti_lng' => null,
-            'estado' => 1
+            'estado' => 1,
+            'tipo_ruta' => 'reserva' // Marcador para identificar que es una reserva
         ];
         
         $rutaId = $horariRutaModel->create($rutaData);

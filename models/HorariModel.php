@@ -25,7 +25,8 @@ class HorariModel {
             SELECT hr.*, u.nom, u.cognoms 
             FROM {$this->table} hr 
             JOIN usuaris u ON hr.user_id = u.id 
-            WHERE hr.user_id = ?
+            WHERE hr.user_id = ? 
+            AND (hr.comentaris NOT LIKE 'RESERVA_RAPIDA:%' OR hr.comentaris IS NULL)
             ORDER BY hr.data_ruta DESC, hr.hora_inici ASC
         ";
         $result = $this->dbHelper->executeQuery($sql, [$userId], 'i');

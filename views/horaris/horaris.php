@@ -154,6 +154,7 @@ $myReservations = $myReservations ?? [];
                                             <th>Horari</th>
                                             <th>Ruta</th>
                                             <th>Vehicle</th>
+                                            <th>Valoració</th>
                                             <th>Comentaris</th>
                                             <th>Accions</th>
                                         </tr>
@@ -187,6 +188,27 @@ $myReservations = $myReservations ?? [];
                                                     <span class="badge bg-secondary">
                                                         <?php echo htmlspecialchars($row['vehicle']); ?>
                                                     </span>
+                                                </td>
+                                                <td>
+                                                    <?php if ($row['valoracion_total'] > 0): ?>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="text-warning me-2">
+                                                                <?php for ($i = 1; $i <= 5; $i++): ?>
+                                                                    <i class="bi bi-star<?php echo $i <= round($row['valoracion_promedio']) ? '-fill' : ''; ?>"></i>
+                                                                <?php endfor; ?>
+                                                            </div>
+                                                            <small class="text-muted">
+                                                                <?php echo $row['valoracion_promedio']; ?>/5 
+                                                                (<?php echo $row['valoracion_total']; ?>)
+                                                            </small>
+                                                        </div>
+                                                        <button type="button" class="btn btn-outline-info btn-sm mt-1" 
+                                                                onclick="showValoraciones(<?php echo $row['id']; ?>)">
+                                                            <i class="bi bi-eye me-1"></i>Veure valoracions
+                                                        </button>
+                                                    <?php else: ?>
+                                                        <small class="text-muted">Sense valoracions</small>
+                                                    <?php endif; ?>
                                                 </td>
                                                 <td>
                                                     <small><?php echo htmlspecialchars($row['comentaris']); ?></small>
@@ -932,6 +954,113 @@ $myReservations = $myReservations ?? [];
                 darkModeIcon.classList.remove('bi-sun-fill');
                 darkModeIcon.classList.add('bi-moon-stars');
             }
+        }
+    </script>
+
+    <!-- Modal para ver valoraciones -->
+    <div class="modal fade" id="valoracionesModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="bi bi-star me-2"></i>Valoracions de la Ruta
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="valoracionesContent">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Carregant...</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Función para mostrar valoraciones
+        function showValoraciones(rutaId) {
+            const modal = new bootstrap.Modal(document.getElementById('valoracionesModal'));
+            const content = document.getElementById('valoracionesContent');
+            
+            // Mostrar loading
+            content.innerHTML = `
+                <div class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Carregant...</span>
+                    </div>
+                </div>
+            `;
+            
+            modal.show();
+            
+            // Hacer petición AJAX
+            fetch(`../../public/index.php?controller=valoracion&action=api_valoraciones&ruta_id=${rutaId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.valoraciones && data.valoraciones.length > 0) {
+                        let html = `
+                            <div class="mb-3 text-center">
+                                <div class="text-warning mb-2">
+                                    ${generateStars(data.promedio)}
+                                </div>
+                                <h6>${data.promedio}/5 (${data.total} valoracions)</h6>
+                            </div>
+                            <div class="row g-3">
+                        `;
+                        
+                        data.valoraciones.forEach(val => {
+                            html += `
+                                <div class="col-12">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                                <div>
+                                                    <h6 class="mb-0">${val.nom} ${val.cognoms}</h6>
+                                                    <div class="text-warning">
+                                                        ${generateStars(val.puntuacion)}
+                                                    </div>
+                                                </div>
+                                                <small class="text-muted">
+                                                    ${new Date(val.fecha_valoracion).toLocaleDateString('ca-ES')}
+                                                </small>
+                                            </div>
+                                            ${val.comentario ? `<p class="mb-0 text-muted"><em>"${val.comentario}"</em></p>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        
+                        html += '</div>';
+                        content.innerHTML = html;
+                    } else {
+                        content.innerHTML = `
+                            <div class="text-center py-4">
+                                <i class="bi bi-star text-muted display-4"></i>
+                                <h5 class="text-muted mt-3">Aquesta ruta encara no té valoracions</h5>
+                            </div>
+                        `;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    content.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            Error al carregar les valoracions
+                        </div>
+                    `;
+                });
+        }
+        
+        function generateStars(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+                stars += `<i class="bi bi-star${i <= Math.round(rating) ? '-fill' : ''}"></i>`;
+            }
+            return stars;
         }
     </script>
 </body>

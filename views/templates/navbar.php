@@ -17,6 +17,9 @@
                 <a class="nav-link fw-semibold" href="../../public/index.php?controller=horaris&action=index" style="color: #1f2937; padding: 0.5rem 1rem; margin: 0 0.25rem; border-radius: 0.75rem; transition: all 0.2s;">
                     <i class="bi bi-calendar"></i> Horaris
                 </a>
+                <a class="nav-link fw-semibold" href="../../public/index.php?controller=valoracion&action=index" style="color: #1f2937; padding: 0.5rem 1rem; margin: 0 0.25rem; border-radius: 0.75rem; transition: all 0.2s;">
+                    <i class="bi bi-star"></i> Valoracions
+                </a>
                 <a class="nav-link fw-semibold" href="../../public/index.php?controller=map&action=index" style="color: #1f2937; padding: 0.5rem 1rem; margin: 0 0.25rem; border-radius: 0.75rem; transition: all 0.2s;">
                     <i class="bi bi-geo-alt"></i> Mapa
                 </a>
