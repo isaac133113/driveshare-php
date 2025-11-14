@@ -112,9 +112,9 @@ class ChatModel {
      */
     public function getUserConversations($userId) {
         try {
-            $stmt = $this->conn->prepare("
+            $sql = "
                 SELECT c.*, 
-                       v.marca_model as vehicle_name, v.tipus, v.preu_hora,
+                       v.marca_model, v.tipus, v.preu_hora,
                        renter.nom as renter_name, renter.email as renter_email,
                        owner.nom as owner_name, owner.email as owner_email,
                        (SELECT COUNT(*) FROM messages WHERE conversation_id = c.id AND sender_id != ? AND is_read = 0) as unread_count,
@@ -126,16 +126,19 @@ class ChatModel {
                 LEFT JOIN usuaris owner ON c.owner_id = owner.id
                 WHERE c.renter_id = ? OR c.owner_id = ?
                 ORDER BY c.updated_at DESC
-            ");
+            ";
+            $stmt = $this->conn->prepare($sql);
+            if ($stmt === false) {
+                error_log('SQL Prepare failed: ' . $this->conn->error);
+                throw new Exception('SQL Prepare failed: ' . $this->conn->error);
+            }
             $stmt->bind_param("iii", $userId, $userId, $userId);
             $stmt->execute();
             $result = $stmt->get_result();
-            
             $conversations = [];
             while ($row = $result->fetch_assoc()) {
                 $conversations[] = $row;
             }
-            
             return $conversations;
             
         } catch (mysqli_sql_exception $e) {

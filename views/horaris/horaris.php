@@ -262,6 +262,7 @@ $myReservations = $myReservations ?? [];
                                             <th>Conductor</th>
                                             <th>Places reservades</th>
                                             <th>Comentaris</th>
+                                            <th>Accions</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -311,6 +312,11 @@ $myReservations = $myReservations ?? [];
                                                 <td>
                                                     <small><?php echo htmlspecialchars($reservation['comentaris']); ?></small>
                                                 </td>
+                                                   <td>
+                                                       <a href="../../public/index.php?controller=chat&action=index" class="btn btn-outline-success btn-sm">
+                                                           <i class="bi bi-chat-dots me-1"></i>Chat propietari
+                                                       </a>
+                                                   </td>
                                             </tr>
                                         <?php endforeach; ?>
                                     </tbody>
@@ -1064,4 +1070,7 @@ $myReservations = $myReservations ?? [];
         }
     </script>
 </body>
+<script>
+
+</script>
 </html>

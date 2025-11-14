@@ -40,14 +40,19 @@ class ValoracionModel {
                 puntuacion = VALUES(puntuacion), 
                 comentario = VALUES(comentario),
                 fecha_valoracion = CURRENT_TIMESTAMP";
-        
+
         $stmt = $this->db->prepare($sql);
         if (!$stmt) {
             error_log("Error preparando statement: " . $this->db->error);
             return false;
         }
-        
-        $stmt->bind_param("iiiis", $rutaId, $userId, $conductorId, $puntuacion, $comentario);
+
+        // Si puntuacion es null, usar 'i' y pasar null, si no, pasar el valor
+        if ($puntuacion === null) {
+            $stmt->bind_param("iiibs", $rutaId, $userId, $conductorId, $puntuacion, $comentario);
+        } else {
+            $stmt->bind_param("iiiis", $rutaId, $userId, $conductorId, $puntuacion, $comentario);
+        }
         return $stmt->execute();
     }
 
@@ -114,17 +119,16 @@ class ValoracionModel {
 
     public function getValoracionesPendientes($userId) {
         $sql = "SELECT DISTINCT hr.id, hr.origen, hr.desti, hr.data_ruta, hr.hora_inici, hr.hora_fi, hr.user_id as conductor_id,
-                       u.nom as conductor_nom, u.cognoms as conductor_cognoms,
-                       r.id as reserva_id
-                FROM reservas r
-                JOIN horaris_rutes hr ON r.ruta_id = hr.id
-                JOIN usuaris u ON hr.user_id = u.id
-                LEFT JOIN {$this->table} v ON (v.ruta_id = hr.id AND v.user_id = ?)
-                WHERE r.user_id = ? 
-                AND hr.data_ruta < CURDATE() 
-                AND v.id IS NULL
-                AND hr.user_id != ?
-                ORDER BY hr.data_ruta DESC";
+                   u.nom as conductor_nom, u.cognoms as conductor_cognoms,
+                   r.id as reserva_id
+            FROM reservas r
+            JOIN horaris_rutes hr ON r.ruta_id = hr.id
+            JOIN usuaris u ON hr.user_id = u.id
+            LEFT JOIN {$this->table} v ON (v.ruta_id = hr.id AND v.user_id = ?)
+            WHERE r.user_id = ? 
+            AND v.id IS NULL
+            AND hr.user_id != ?
+            ORDER BY hr.data_ruta DESC";
         
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("iii", $userId, $userId, $userId);
@@ -167,6 +171,18 @@ class ValoracionModel {
         
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+
+    public function getByConductor($conductorId) {
+        $sql = "SELECT v.*, u.nom, u.cognoms 
+                FROM {$this->table} v
+                JOIN usuaris u ON v.user_id = u.id
+                WHERE v.conductor_id = ?
+                ORDER BY v.fecha_valoracion DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("i", $conductorId);
         $stmt->execute();
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }

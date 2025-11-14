@@ -4,6 +4,42 @@ require_once __DIR__ . '/../models/ChatModel.php';
 require_once __DIR__ . '/../config/Database.php';
 
 class ChatController extends BaseController {
+        /**
+         * Iniciar chat con el propietario de una ruta
+         */
+        public function iniciarChatPropietario() {
+            $rutaId = intval($_GET['ruta_id'] ?? 0);
+            if (!$rutaId) {
+                $this->setFlashMessage('Ruta no especificada.', 'danger');
+                $this->redirect('?controller=horaris&action=index');
+            }
+
+            // Obtener información de la ruta
+            require_once __DIR__ . '/../models/HorariModel.php';
+            $horariModel = new HorariModel();
+            $ruta = $horariModel->getHorariById($rutaId);
+            if (!$ruta) {
+                $this->setFlashMessage('Ruta no encontrada.', 'danger');
+                $this->redirect('?controller=horaris&action=index');
+            }
+
+            $ownerId = $ruta['user_id'];
+            $currentUserId = $_SESSION['user_id'];
+            if ($ownerId == $currentUserId) {
+                $this->setFlashMessage('No puedes iniciar un chat contigo mismo.', 'danger');
+                $this->redirect('?controller=horaris&action=index');
+            }
+
+            // Crear o recuperar conversación (usando el id de la ruta como referencia de vehículo)
+            $conversationId = $this->chatModel->createOrGetConversation($ruta['vehicle'], $currentUserId, $ownerId);
+            if (!$conversationId) {
+                $this->setFlashMessage('No se pudo crear la conversación.', 'danger');
+                $this->redirect('?controller=horaris&action=index');
+            }
+
+            // Redirigir a la conversación
+            $this->redirect('?controller=chat&action=conversation&id=' . $conversationId);
+        }
     private $chatModel;
     
     public function __construct() {

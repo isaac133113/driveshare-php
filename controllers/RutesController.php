@@ -112,6 +112,11 @@ class RutesController extends BaseController {
                 // Crear reserva
                 $this->reservaModel->create($userId, $rutaId, $plazas);
 
+                // Crear valoración pendiente (solo una por reserva)
+                require_once __DIR__ . '/../models/ValoracionModel.php';
+                $valoracionModel = new ValoracionModel();
+                $valoracionModel->create($rutaId, $userId, $ruta['user_id'], null, '');
+
                 $_SESSION['message'] = "Reserva realitzada amb DriveCoins!";
                 $_SESSION['messageType'] = "success";
 
@@ -138,6 +143,11 @@ class RutesController extends BaseController {
 
                 // Crear reserva
                 $this->reservaModel->create($userId, $rutaId, $plazas);
+
+                // Crear valoración pendiente (solo una por reserva)
+                require_once __DIR__ . '/../models/ValoracionModel.php';
+                $valoracionModel = new ValoracionModel();
+                $valoracionModel->create($rutaId, $userId, $ruta['user_id'], null, '');
 
                 // Bonus DriveCoins
                 $bonusDC = $totalEurosGastados * 0.2; // 20% de los euros gastados

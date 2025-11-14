@@ -98,7 +98,7 @@
                 <a class="nav-link" href="../ver-coches.php">
                     <i class="bi bi-car-front"></i> Vehicles
                 </a>
-                <a class="nav-link" href="ChatController.php">
+                <a class="nav-link" href="<?php echo BASE_URL; ?>/index.php?controller=chat&action=index">
                     <i class="bi bi-chat-dots"></i> Xat
                 </a>
                 <a class="nav-link" href="../logout.php">
@@ -116,7 +116,7 @@
                     <div class="row align-items-center">
                         <div class="col-md-8">
                             <div class="d-flex align-items-center">
-                                <a href="ChatController.php" class="back-link me-3">
+                                <a href="<?php echo BASE_URL; ?>/index.php?controller=chat&action=index" class="back-link me-3">
                                     <i class="bi bi-arrow-left-circle"></i>
                                 </a>
                                 <div>
@@ -233,7 +233,7 @@
             formData.append('conversation_id', conversationId);
             formData.append('message', message);
             
-            fetch('ChatController.php?action=send', {
+            fetch('<?php echo BASE_URL; ?>/index.php?controller=chat&action=sendMessage', {
                 method: 'POST',
                 body: formData
             })
@@ -292,7 +292,7 @@
         
         // Función para obtener mensajes nuevos
         function checkNewMessages() {
-            fetch(`ChatController.php?action=new-messages&conversation_id=${conversationId}&last_message_id=${lastMessageId}`)
+            fetch(`<?php echo BASE_URL; ?>/index.php?controller=chat&action=getNewMessages&conversation_id=${conversationId}&last_message_id=${lastMessageId}`)
                 .then(response => response.json())
                 .then(data => {
                     if (data.success && data.messages.length > 0) {

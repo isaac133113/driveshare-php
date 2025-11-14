@@ -33,7 +33,7 @@ class ValoracionController extends BaseController {
         // Obtener mis valoraciones dadas
         $misValoracionesDadas = $this->getMisValoracionesDadas();
         
-        include __DIR__ . '/../views/valoraciones/index.php';
+        include __DIR__ . '/../views/valoracions/index.php';
     }
     
     public function create() {

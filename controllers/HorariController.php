@@ -263,5 +263,38 @@ class HorariController extends BaseController {
         }
         exit;
     }
+
+    public function iniciarChatPropietario() {
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $rutaId = intval($_POST['ruta_id'] ?? 0);
+            $message = trim($_POST['message'] ?? '');
+            $userId = $_SESSION['user_id'];
+            if (!$rutaId || empty($message)) {
+                echo json_encode(['success' => false, 'message' => 'Datos incompletos']);
+                return;
+            }
+            require_once __DIR__ . '/../models/HorariRutaModel.php';
+            $rutaModel = new HorariRutaModel();
+            $ruta = $rutaModel->getById($rutaId);
+            if (!$ruta) {
+                echo json_encode(['success' => false, 'message' => 'Ruta no encontrada']);
+                return;
+            }
+            $ownerId = $ruta['user_id'];
+            require_once __DIR__ . '/../models/ChatModel.php';
+            $chatModel = new ChatModel();
+            $conversationId = $chatModel->createOrGetConversation($ruta['vehicle_id'], $userId, $ownerId);
+            if (!$conversationId) {
+                echo json_encode(['success' => false, 'message' => 'No se pudo crear la conversación']);
+                return;
+            }
+            $msgId = $chatModel->sendMessage($conversationId, $userId, $message);
+            if ($msgId) {
+                echo json_encode(['success' => true, 'conversation_id' => $conversationId]);
+            } else {
+                echo json_encode(['success' => false, 'message' => 'No se pudo enviar el mensaje']);
+            }
+        }
+    }
 }
 ?>

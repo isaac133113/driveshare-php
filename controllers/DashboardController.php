@@ -4,6 +4,7 @@ require_once __DIR__ . '/../models/HorariModel.php';
 require_once __DIR__ . '/../models/DriveCoinModel.php';
 require_once __DIR__ . '/../models/VehicleModel.php';
 require_once __DIR__ . '/../models/HorariRutaModel.php';
+require_once __DIR__ . '/../models/ValoracionModel.php';
 
 class DashboardController extends BaseController {
     protected $horariModel;
@@ -144,6 +145,10 @@ class DashboardController extends BaseController {
             // ignorar, usar valores por defecto
         }
         
+        // Valoraciones recibidas
+        $valoracionModel = new ValoracionModel();
+        $valoracionesRecibidas = $valoracionModel->getByConductor($_SESSION['user_id']);
+        $mediaValoracion = $valoracionModel->getPromedioByConductor($_SESSION['user_id']);
 
         // -----------------------------
         // Cargar la vista
