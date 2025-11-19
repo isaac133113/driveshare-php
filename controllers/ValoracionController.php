@@ -28,8 +28,17 @@ class ValoracionController extends BaseController {
         $topConductores = $this->valoracionModel->getTopConductores(10);
         
         // Obtener mis valoraciones recibidas (como conductor)
-        $misValoracionesRecibidas = $this->getMisValoracionesRecibidas();
-        
+        $misValoracionesRecibidas = $this->valoracionModel->getByConductor($_SESSION['user_id']);
+
+        // Calcular media de mis valoraciones recibidas
+        $mediaMisValoraciones = 0;
+        $totalMisValoraciones = 0;
+        if (count($misValoracionesRecibidas) > 0) {
+            $suma = array_sum(array_column($misValoracionesRecibidas, 'puntuacion'));
+            $totalMisValoraciones = count($misValoracionesRecibidas);
+            $mediaMisValoraciones = round($suma / $totalMisValoraciones, 1);
+        }
+
         // Obtener mis valoraciones dadas
         $misValoracionesDadas = $this->getMisValoracionesDadas();
         

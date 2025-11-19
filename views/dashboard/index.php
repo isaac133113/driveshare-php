@@ -107,21 +107,25 @@ $userPreferences = $userPreferences ?? [
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <div class="border rounded-3 p-3 bg-success bg-opacity-25">
+                                <div class="border rounded-3 p-3 bg-success bg-opacity-25 text-center h-100 d-flex flex-column justify-content-center">
                                     <small class="text-muted"><i class="bi bi-wallet2 me-1"></i>Saldo Disponible</small>
-                                    <div class="fw-bold text-success">
+                                    <div class="fw-bold text-success fs-5">
                                         <span id="userSaldo"><?php echo number_format($userPreferences['saldo'], 2, ',', '.'); ?> €</span>
                                     </div>
-                                    <small class="text-muted">Saldo de la teva compte</small>
+                                    <!-- Botón pequeño para agregar saldo -->
+                                    <button type="button" class="btn btn-sm btn-outline-success mt-2" 
+                                            data-bs-toggle="modal" data-bs-target="#addSaldoModal">
+                                        Afegir saldo
+                                    </button>
                                 </div>
                             </div>
                             <div class="col-md-6 mb-3">
-                                <div class="border rounded-3 p-3 bg-warning bg-opacity-25">
+                                <div class="border rounded-3 p-3 bg-warning bg-opacity-25 text-center h-100">
                                     <small class="text-muted"><i class="bi bi-coin me-1"></i>DriveCoins</small>
-                                    <div class="fw-bold text-warning">
+                                    <div class="fw-bold text-warning fs-5">
                                         <span id="driveCoinsBalance"><?php echo number_format($driveCoinsBalance, 2, ',', '.'); ?></span> DC
                                     </div>
-                                    <small class="text-muted">Monedes del sistema</small>
+                                    <small class="text-muted d-block mt-2">Monedes del sistema</small>
                                 </div>
                             </div>
                         </div>
@@ -181,6 +185,39 @@ $userPreferences = $userPreferences ?? [
 
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Modal Afegir Saldo -->
+    <div class="modal fade" id="addSaldoModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg rounded-4">
+                <form method="POST" action="../../public/index.php?controller=dashboard&action=addSaldo">
+                    <div class="modal-header bg-success text-white border-0 rounded-top-4">
+                        <h5 class="modal-title fw-bold">
+                            <i class="bi bi-wallet2 me-2"></i>Afegir Saldo
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <div class="mb-3">
+                            <label for="amount" class="form-label fw-bold">Quantitat (€)</label>
+                            <input type="number" class="form-control" id="amount" name="amount" step="0.01" min="1" required>
+                        </div>
+                        <small class="text-muted d-block mb-3">
+                            Aquesta és una simulació. No s'utilitza cap passarel·la de pagament real.
+                        </small>
+                    </div>
+                    <div class="modal-footer border-0 bg-light rounded-bottom-4">
+                        <button type="button" class="btn btn-secondary rounded-3 px-4" data-bs-dismiss="modal">
+                            <i class="bi bi-x-circle me-2"></i>Cancel·lar
+                        </button>
+                        <button type="submit" class="btn btn-success rounded-3 px-4">
+                            <i class="bi bi-plus-circle me-2"></i>Afegir Saldo
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     
     <!-- Modal de Configuración -->
     <div class="modal fade" id="configModal" tabindex="-1" aria-labelledby="configModalLabel" aria-hidden="true">

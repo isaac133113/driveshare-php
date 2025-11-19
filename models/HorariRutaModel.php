@@ -37,12 +37,12 @@ class HorariRutaModel {
                     COALESCE(v.marca_model, hr.vehicle) AS marca_model,
                     COALESCE(v.tipus, 'No especificat') AS tipus,
                     COALESCE(hr.plazas_disponibles, v.places, 1) AS plazas_disponibles,
-                    COALESCE(hr.precio_euros, v.preu_hora, 0) AS precio_euros
+                    hr.precio_euros AS precio_euros
                 FROM horaris_rutes hr
                 JOIN usuaris u ON hr.user_id = u.id
                 LEFT JOIN vehicles v ON hr.vehicle_id = v.id
                 WHERE hr.id = ?";
-        
+
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $id);
         $stmt->execute();
@@ -110,6 +110,7 @@ class HorariRutaModel {
     }
 
     public function getAllRutes() {
+        $userId = $_SESSION['user_id'];
         $sql = "SELECT hr.*, 
                     u.nom, u.cognoms,
                     COALESCE(v.marca_model, hr.vehicle) AS vehicle,
@@ -124,9 +125,11 @@ class HorariRutaModel {
                 LEFT JOIN vehicles v ON hr.vehicle_id = v.id
                 LEFT JOIN vehicle_images vi ON v.id = vi.vehicle_id AND vi.orden = 0
                 WHERE (hr.estado IS NULL OR hr.estado = 1)
+                AND hr.user_id <> ?  -- Excluye tus propias rutas
                 ORDER BY hr.data_ruta DESC, hr.hora_inici ASC";
 
         $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("i", $userId);
         
         if ($stmt === false) {
             error_log("Error preparing getAllRutes statement: " . $this->db->error);

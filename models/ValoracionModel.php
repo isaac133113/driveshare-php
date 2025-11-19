@@ -138,12 +138,11 @@ class ValoracionModel {
 
     public function getTopConductores($limit = 10) {
         $sql = "SELECT v.conductor_id, u.nom, u.cognoms, 
-                       AVG(v.puntuacion) as promedio, 
-                       COUNT(v.id) as total_valoraciones
+                    AVG(v.puntuacion) as promedio, 
+                    COUNT(v.id) as total_valoraciones
                 FROM {$this->table} v
                 JOIN usuaris u ON v.conductor_id = u.id
                 GROUP BY v.conductor_id
-                HAVING total_valoraciones >= 3
                 ORDER BY promedio DESC, total_valoraciones DESC
                 LIMIT ?";
         
@@ -176,11 +175,15 @@ class ValoracionModel {
     }
 
     public function getByConductor($conductorId) {
-        $sql = "SELECT v.*, u.nom, u.cognoms 
-                FROM {$this->table} v
+        $sql = "SELECT v.*, 
+                    u.nom, u.cognoms,
+                    r.origen, r.desti, r.data_ruta, r.hora_inici
+                FROM valoraciones v
                 JOIN usuaris u ON v.user_id = u.id
+                JOIN horaris_rutes r ON v.ruta_id = r.id
                 WHERE v.conductor_id = ?
                 ORDER BY v.fecha_valoracion DESC";
+
         $stmt = $this->db->prepare($sql);
         $stmt->bind_param("i", $conductorId);
         $stmt->execute();

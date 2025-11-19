@@ -178,12 +178,12 @@ $misValoracionesDadas = $misValoracionesDadas ?? [];
                                                 <div class="row align-items-center">
                                                     <div class="col-md-6">
                                                         <h6 class="fw-bold mb-1">
-                                                            <?php echo htmlspecialchars($valoracion['ruta_info']['origen']); ?> 
+                                                            <?php echo htmlspecialchars($valoracion['origen']); ?> 
                                                             <i class="bi bi-arrow-right mx-1"></i> 
-                                                            <?php echo htmlspecialchars($valoracion['ruta_info']['desti']); ?>
+                                                            <?php echo htmlspecialchars($valoracion['desti']); ?>
                                                         </h6>
                                                         <small class="text-muted">
-                                                            <?php echo date('d/m/Y H:i', strtotime($valoracion['ruta_info']['data_ruta'] . ' ' . $valoracion['ruta_info']['hora_inici'])); ?>
+                                                            <?php echo date('d/m/Y H:i', strtotime($valoracion['data_ruta'] . ' ' . $valoracion['hora_inici'])); ?>
                                                         </small>
                                                     </div>
                                                     <div class="col-md-3">
@@ -290,57 +290,89 @@ $misValoracionesDadas = $misValoracionesDadas ?? [];
                 <!-- Top Conductores -->
                 <div class="tab-pane fade" id="top" role="tabpanel">
                     <div class="glass-card border-0 shadow-lg rounded-4">
-                        <div class="card-header border-0 rounded-top-4 p-3" style="background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);">
+
+                        <!-- Header -->
+                        <div class="card-header border-0 rounded-top-4 p-3" 
+                            style="background: linear-gradient(135deg, #ffc107 0%, #ff8f00 100%);">
                             <h5 class="mb-0 text-white fw-bold">
                                 <i class="bi bi-trophy me-2"></i>Top Conductors de DriveShare
                             </h5>
                         </div>
+
                         <div class="card-body p-4">
-                            <?php if (count($topConductores) > 0): ?>
-                                <div class="row g-3">
+
+                            <?php if (!empty($topConductores)): ?>
+                                <div class="row g-4">
+
                                     <?php foreach ($topConductores as $index => $conductor): ?>
                                         <div class="col-md-6">
-                                            <div class="valoracion-card rounded-4 p-3">
+
+                                            <div class="valoracion-card rounded-4 p-3 shadow-sm">
+
                                                 <div class="d-flex align-items-center">
+
+                                                    <!-- Podio / Ranking -->
                                                     <div class="me-3">
-                                                        <div class="bg-warning text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                        <div class="bg-warning text-white rounded-circle d-flex 
+                                                                    align-items-center justify-content-center"
+                                                            style="width: 55px; height: 55px;">
+
                                                             <?php if ($index === 0): ?>
-                                                                <i class="bi bi-trophy-fill fs-4"></i>
+                                                                <i class="bi bi-trophy-fill fs-3"></i>
                                                             <?php elseif ($index === 1): ?>
-                                                                <i class="bi bi-award-fill fs-4"></i>
+                                                                <i class="bi bi-award-fill fs-3"></i>
                                                             <?php elseif ($index === 2): ?>
-                                                                <i class="bi bi-medal-fill fs-4"></i>
+                                                                <i class="bi bi-medal-fill fs-3"></i>
                                                             <?php else: ?>
-                                                                <span class="fw-bold"><?php echo $index + 1; ?></span>
+                                                                <span class="fw-bold fs-4"><?php echo $index + 1; ?></span>
                                                             <?php endif; ?>
+
                                                         </div>
                                                     </div>
+
+                                                    <!-- Datos del conductor -->
                                                     <div class="flex-grow-1">
+
+                                                        <!-- Nombre -->
                                                         <h6 class="fw-bold mb-1">
                                                             <?php echo htmlspecialchars($conductor['nom'] . ' ' . $conductor['cognoms']); ?>
                                                         </h6>
+
+                                                        <!-- Estrellas -->
                                                         <div class="rating-display mb-1">
                                                             <?php for ($i = 1; $i <= 5; $i++): ?>
                                                                 <i class="bi bi-star<?php echo $i <= round($conductor['promedio']) ? '-fill' : ''; ?>"></i>
                                                             <?php endfor; ?>
-                                                            <span class="text-muted ms-1"><?php echo $conductor['promedio']; ?>/5</span>
+
+                                                            <span class="text-muted ms-1">
+                                                                <?php echo number_format($conductor['promedio'], 1); ?>/5
+                                                            </span>
                                                         </div>
+
+                                                        <!-- Cantidad de valoraciones -->
                                                         <small class="text-muted">
                                                             <?php echo $conductor['total_valoraciones']; ?> valoracions
                                                         </small>
                                                     </div>
                                                 </div>
+
                                             </div>
                                         </div>
                                     <?php endforeach; ?>
+
                                 </div>
+
                             <?php else: ?>
+
+                                <!-- Estado vacío -->
                                 <div class="text-center py-5">
-                                    <i class="bi bi-trophy text-muted display-4"></i>
+                                    <i class="bi bi-trophy text-warning display-4"></i>
                                     <h5 class="text-muted mt-3">Encara no hi ha conductors valorats</h5>
                                     <p class="text-muted">Sigues el primer a valorar i crear el ranking!</p>
                                 </div>
+
                             <?php endif; ?>
+
                         </div>
                     </div>
                 </div>

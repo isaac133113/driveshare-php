@@ -358,6 +358,5 @@ class UserModel {
         $stmt->bind_param("di", $newSaldo, $userId);
         return $stmt->execute();
     }
-
 }
 ?>

@@ -25,8 +25,9 @@ class DashboardController extends BaseController {
         // -----------------------------
         // Variables que la vista espera
         // -----------------------------
-        $message = '';
-        $messageType = '';
+        $message = $_SESSION['message'] ?? '';
+        $messageType = $_SESSION['messageType'] ?? '';
+        unset($_SESSION['message'], $_SESSION['messageType']);
 
         // -----------------------------
         // Obtener vehículos del usuario
@@ -284,6 +285,37 @@ class DashboardController extends BaseController {
         
         echo json_encode($results);
         exit;
+    }
+
+    public function addSaldo() {
+        $this->requireAuth();
+        
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $amount = floatval($_POST['amount'] ?? 0);
+            $userId = $_SESSION['user_id'];
+
+            $userModel = new UserModel();
+
+            if ($amount <= 0) {
+                $_SESSION['message'] = "Quantitat no vàlida";
+                $_SESSION['messageType'] = "danger";
+            } else {
+                $currentSaldo = $userModel->getById($userId)['saldo'];
+                $newSaldo = $currentSaldo + $amount;
+
+                if ($userModel->updateSaldo($userId, $newSaldo)) {
+                    $userModel->logUserActivity($userId, 'Afegit saldo', $amount);
+                    $_SESSION['message'] = "Saldo afegit correctament! Nou saldo: " . number_format($newSaldo, 2, ',', '.') . " €";
+                    $_SESSION['messageType'] = "success";
+                } else {
+                    $_SESSION['message'] = "Error actualitzant el saldo";
+                    $_SESSION['messageType'] = "danger";
+                }
+            }
+
+            header('Location: ../../public/index.php?controller=dashboard&action=index');
+            exit;
+        }
     }
     
     private function updateProfile() {
