@@ -4,6 +4,24 @@ session_start();
 // Buffer de salida para evitar problemas de headers
 ob_start();
 
+// Obtener la ruta reescrita por Apache
+$uri = trim(parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH), '/');
+
+if ($uri !== '') {
+    $parts = explode('/', $uri);
+
+    // Primera parte: controlador
+    $controllerName = $parts[0] ?? 'auth';
+
+    // Segunda parte: acción
+    $action = $parts[1] ?? 'login';
+} else {
+    // Ruta raíz → controlador y acción por defecto
+    $controllerName = 'auth';
+    $action = 'login';
+}
+
+
 // Cargar configuración
 require_once __DIR__ . '/../config/config.php';
 
